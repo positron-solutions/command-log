@@ -57,21 +57,6 @@
 (defvar clm/recent-history-string ""
   "This string will hold recently typed text.")
 
-(defun clm/recent-history ()
-  (setq clm/recent-history-string
-	(concat clm/recent-history-string
-		(buffer-substring-no-properties (- (point) 1) (point)))))
-
-(add-hook 'post-self-insert-hook 'clm/recent-history)
-
-(defun clm/zap-recent-history ()
-  (unless (or (member this-original-command
-		      clm/log-command-exceptions*)
-	      (eq this-original-command #'self-insert-command))
-    (setq clm/recent-history-string "")))
-
-(add-hook 'post-command-hook 'clm/zap-recent-history)
-
 (defvar clm/time-string "%Y-%m-%dT%H:%M:%S"
   "The string sent to `format-time-string' when command time is logged.")
 
@@ -144,6 +129,21 @@ Frequently used non-interesting commands (like cursor movements) should be put h
   "Does turning on command-log-mode happen globally?"
   :group 'command-log
   :type 'boolean)
+
+(defun clm/recent-history ()
+  (setq clm/recent-history-string
+	(concat clm/recent-history-string
+		(buffer-substring-no-properties (- (point) 1) (point)))))
+
+(add-hook 'post-self-insert-hook 'clm/recent-history)
+
+(defun clm/zap-recent-history ()
+  (unless (or (member this-original-command
+		      clm/log-command-exceptions*)
+	      (eq this-original-command #'self-insert-command))
+    (setq clm/recent-history-string "")))
+
+(add-hook 'post-command-hook 'clm/zap-recent-history)
 
 ;;;###autoload
 (define-minor-mode command-log-mode
