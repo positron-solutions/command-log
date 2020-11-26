@@ -108,6 +108,21 @@ Frequently used non-interesting commands (like cursor movements) should be put h
   :group 'command-log
   :type 'integer)
 
+(defface command-log-key
+  '((t :inherit 'font-lock-keyword-face))
+  "Face for keys in command log."
+  :group 'command-log)
+
+(defface command-log-command
+  '((t :inherit font-lock-function-name-face))
+  "Face for commands in command log."
+  :group 'command-log)
+
+(defface command-log-repeat
+  '((t :inherit 'font-lock-doc-face))
+  "Face for commands in command log."
+  :group 'command-log)
+
 (defcustom command-log-mode-key-binding-open-log nil
   "The key binding used to toggle the log window."
   :group 'command-log
@@ -272,27 +287,27 @@ Scrolling up can be accomplished with:
                                       " ["
                                       (number-to-string (1+ clm/command-repetitions))
                                       " times]")
-                                     'face 'font-lock-doc-face)))
+                                     'face 'command-log-repeat)))
                 (t ;; (message "last cmd: %s cur: %s" last-command cmd)
                  ;; showing accumulated text with interleaved key presses isn't very useful
         	 (when (and clm/log-text (not clm/log-repeat))
         	   (if (eq clm/last-keyboard-command 'self-insert-command)
         	       (insert (propertize
                                 (concat "[text: " clm/recent-history-string "]\n")
-                                'face 'font-lock-doc-face))))
+                                'face 'command-log-repeat))))
                  (setq clm/command-repetitions 0)
                  (insert
                   (propertize
                    (key-description (this-command-keys))
                    :time  (format-time-string clm/time-string (current-time))
-                   'face 'font-lock-keyword-face))
+                   'face 'command-log-key))
                  (when (>= (current-column) clm/log-command-indentation)
                    (newline))
                  (move-to-column clm/log-command-indentation t)
                  (insert
                   (propertize
                    (if (byte-code-function-p cmd) "<bytecode>" (symbol-name cmd))
-                   'face 'font-lock-function-name-face))
+                   'face 'command-log-command))
                  (newline)
                  (setq clm/last-keyboard-command cmd)))
           (clm/scroll-buffer-window current))))))
