@@ -326,8 +326,9 @@ Scrolling up can be accomplished with:
   (with-current-buffer clm--command-log-buffer
     (erase-buffer)))
 
-(defun clm--save-log-line (start end)
-  "Helper function for `clm-save-command-log' to export text properties."
+(defun clm--line-time (start end)
+  "Return time at START as [timestamp].
+END is ignored"
   (save-excursion
     (goto-char start)
     (let ((time (get-text-property (point) :time)))
@@ -344,7 +345,7 @@ Clears the command log buffer after saving."
     (set-buffer (get-buffer " *command-log*"))
     (goto-char (point-min))
     (let ((now (format-time-string "%Y-%m-%d"))
-	  (write-region-annotate-functions '(clm--save-log-line)))
+	  (write-region-annotate-functions '(clm--line-time)))
       (while (and (re-search-forward "^.*" nil t)
 		  (not (eobp)))
 	(append-to-file (line-beginning-position) (1+ (line-end-position)) (concat clm-logging-dir now))))
