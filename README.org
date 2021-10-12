@@ -1,39 +1,36 @@
 ** What it do?
 
-Show event history and command history of some or all buffers.
+   Show event history and command history of some or all buffers.
 
 ** What it look like?
 
-[[https://github.com/lewang/command-log-mode/raw/master/screenshot1.png]]
+   [[https://github.com/lewang/command-log-mode/raw/master/screenshot1.png]]
 
 ** How do I use it?
 
-   Use the =clm/toggle-command-log-buffer= command.  This use-package
-   configuration will configure this command to log globally, including the
-   mininbuffer, and to disable the global minor mode when you toggle while the
-   buffer is visible.  Customize the =command-log= group for more options.
+   Use the =clm-toggle= command.  The use-package configuration below will
+   configure this command to log globally, including the mininbuffer, and to
+   disable the global minor mode when you toggle while the buffer is visible.
+   Customize the =command-log= group for more options.
 
    #+begin_src elisp
 
      (use-package command-log-mode
         :custom
-        (command-log-mode-window-font-size 20)
-        (command-log-mode-open-log-turns-on-mode t "Show buffer enables mode")
-        (command-log-mode-close-log-turns-off-mode t "Show buffer disables mode")
-        (command-log-mode-is-global "Auto-enable with global minor mode (including minibuffer)")
+        (clm-window-text-scale 2)
+        (clm-open-log-turns-on-mode t "Show buffer enables mode")
+        (clm-close-log-turns-off-mode t "Show buffer disables mode")
+        (clm-log-globally "Auto-enable with global minor mode (including minibuffer)")
         :config
 
         ;; Be chatty.  Show everything besides self-insert-command
-        (setq clm/log-command-exceptions* '(self-insert-command)))
+        (setq clm-log-command-exceptions '(self-insert-command)))
 
    #+end_src
 
-** Where it from?
+** License
 
-This package is a fork of [[http://www.foldr.org/~michaelw/emacs/mwe-log-commands.el][mwe-log-commands.el]] by Michael Weber <michaelw@foldr.org>
-
-** How it different?
-
-1. Remove "mwe-" prefix, but keep credits to mwe.
-2. Make minor-mode and global minor-mode.
-3. Hosted on github so pull requests, etc are easy.
+   This package is a fork of [[http://www.foldr.org/~michaelw/emacs/mwe-log-commands.el][mwe-log-commands.el]] by Michael Weber
+   <michaelw@foldr.org>  The link is broken, but the [[https://github.com/lewang/command-log-mode/commit/dbaae64724589007d8bd776e6bf38ca2cb88156b][original commit]] indicates that
+   it was GPL2+ licensed, including the other forks.  Thanks to others in git
+   history or appear in copyright notices.

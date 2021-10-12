@@ -112,7 +112,7 @@
   :group 'command-log
   :type 'boolean)
 
-(defcustom clm-is-global t
+(defcustom clm-log-globally t
   "Does turning on command-log-mode happen globally?"
   :group 'command-log
   :type 'boolean)
@@ -220,12 +220,21 @@ If ARG is Non-nil, the existing command log buffer is cleared."
         (delete-window win)))))
 
 ;;;###autoload
-(defun clm-toggle-command-log-buffer (&optional arg)
-  "Toggle the command log showing or not."
+(defun clm-toggle (&optional arg)
+  "Display/hide the buffer and activate/deactivate command-log modes.
+
+The following variables are used to configure this toggle:
+
+`clm-log-globally' controls the preference for `command-log-mode`
+minor mode or `global-command-log-mode.
+`clm-open-log-turns-on-mode' will activate modes if showing the log buffer.
+`clm-close-log-turns-off-mode' will clean up modes if killing the log buffer.
+
+Passing a prefix ARG will clear the buffer before display."
   (interactive "P")
   (when (and clm-open-log-turns-on-mode
              (not command-log-mode))
-    (if clm-is-global
+    (if clm-log-globally
         (global-command-log-mode t)
       (command-log-mode t)))
 
@@ -237,7 +246,7 @@ If ARG is Non-nil, the existing command log buffer is cleared."
           (progn
             (when (and clm-close-log-turns-off-mode
                        (command-log-mode nil))
-              (if clm-is-global
+              (if clm-log-globally
                   (global-command-log-mode nil)
                 (command-log-mode nil)))
             (clm-close-command-log-buffer))
