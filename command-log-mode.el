@@ -66,7 +66,7 @@
   :type 'integer)
 
 (defcustom clm-log-command-indentation 11
-  "*Indentation of commands in command log buffer."
+  "Indentation of commands in command log buffer."
   :group 'command-log
   :type 'integer)
 
@@ -121,7 +121,8 @@
   '(self-insert-command
     handle-switch-frame)
   "A list commands which should not be logged, despite logging being enabled.
-Frequently used non-interesting commands (like cursor movements) should be put here."
+Frequently used non-interesting commands (like cursor movements)
+should be put here."
   :group 'command-log
   :type '(repeat symbol))
 
@@ -181,9 +182,11 @@ Frequently used non-interesting commands (like cursor movements) should be put h
   command-log-mode)
 
 (defun clm--should-log-command-p (cmd &optional buffer)
-  "Determines whether keyboard command CMD should be logged.
-If non-nil, BUFFER specifies the buffer used to determine whether CMD should be logged.
-If BUFFER is nil, the current buffer is assumed."
+  "Determine whether keyboard command CMD should be logged.
+
+If non-nil, BUFFER specifies the buffer used to determine whether
+CMD should be logged.  If BUFFER is nil, the current buffer is
+assumed."
   (let ((val (if buffer
 		 (buffer-local-value command-log-mode buffer)
 	       command-log-mode)))
@@ -191,7 +194,7 @@ If BUFFER is nil, the current buffer is assumed."
 	 (null (member cmd clm-log-command-exceptions)))))
 
 (defun clm-open-command-log-buffer (&optional arg)
-  "Opens (and creates, if non-existant) a buffer used for logging keyboard commands.
+  "Open or create a buffer used for logging keyboard commands.
 If ARG is Non-nil, the existing command log buffer is cleared."
   (interactive "P")
   (with-current-buffer 
@@ -242,13 +245,15 @@ If ARG is Non-nil, the existing command log buffer is cleared."
         (clm-open-command-log-buffer arg)))))
 
 (defun clm-scroll-buffer-window (buffer &optional move-fn)
-  "Updates `point' of windows containing BUFFER according to MOVE-FN.
-If non-nil, MOVE-FN is called on every window which displays BUFFER.
-If nil, MOVE-FN defaults to scrolling to the bottom, making the last line visible.
+  "Update `point' of windows containing BUFFER according to MOVE-FN.
+
+If non-nil, MOVE-FN is called on every window which displays
+BUFFER.  If nil, MOVE-FN defaults to scrolling to the bottom,
+making the last line visible.
 
 Scrolling up can be accomplished with:
-\(clm-scroll-buffer-window buf (lambda () (goto-char (point-min))))
-"
+\(clm-scroll-buffer-window
+  buf (lambda () (goto-char (point-min))))"
   (let ((selected (selected-window))
 	(point-mover (or move-fn
 			 (function (lambda () (goto-char (point-max)))))))
@@ -267,7 +272,7 @@ Scrolling up can be accomplished with:
        ,@body)))
 
 (defun clm--log-command (&optional cmd)
-  "Hook into `pre-command-hook' to intercept command activation."
+  "Log CMD to the clm--buffer."
   (let ((deactivate-mark nil) ; do not deactivate mark in transient mark mode
         ;; Don't let random commands change `this-command' and `last-command'
         ;; Emacs global variables by creating local lexical variables with
