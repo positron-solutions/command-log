@@ -131,8 +131,8 @@ should be put here."
   :group 'command-log
   :type 'boolean)
 
-(defcustom clm-log-repeat nil
-  "A nil setting means repetitions of the same command are merged into the single log line."
+(defcustom clm-merge-repeats t
+  "Merge repetitions of the same command."
   :group 'command-log
   :type 'boolean)
 
@@ -284,7 +284,7 @@ Scrolling up can be accomplished with:
       (clm-with-command-log-buffer
         (let ((current (current-buffer)))
           (goto-char (point-max))
-          (cond ((and (not clm-log-repeat) (eq cmd clm--last-keyboard-command))
+          (cond ((and clm-merge-repeats (eq cmd clm--last-keyboard-command))
                  (cl-incf clm--command-repetitions)
                  (save-match-data
                    (when (and (> clm--command-repetitions 1)
@@ -298,7 +298,7 @@ Scrolling up can be accomplished with:
                                      'face 'clm-repeat-face)))
                 (t ;; (message "last cmd: %s cur: %s" last-command cmd)
                  ;; showing accumulated text with interleaved key presses isn't very useful
-        	 (when (and clm-log-text (not clm-log-repeat))
+        	 (when (and clm-log-text clm-merge-repeats)
         	   (if (eq clm--last-keyboard-command 'self-insert-command)
         	       (insert (propertize
                                 (concat "[text: " clm--recent-history-string "]\n")
