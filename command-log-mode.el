@@ -153,6 +153,9 @@ You may want to just except `self-insert-command' by adding it to
 (defvar clm--recent-history-string ""
   "This string will hold recently typed text.")
 
+(defvar clm--show-all-commands nil
+  "Override `clm-exceptions' and show all commands instead.")
+
 (define-minor-mode command-log-mode
   "Toggle keyboard command logging."
   :init-value nil
@@ -210,6 +213,19 @@ Prefix argument will KILL buffer."
     (when buffer
       (with-current-buffer buffer
         (erase-buffer)))))
+
+;;;###autoload
+(defun clm-toggle-show-all-commands (&optional arg)
+  "Override `clm-exceptions' and show everything.
+ARG can be passed for direct setting."
+  (interactive)
+  (setq clm--show-all-commands (or arg (not clm--show-all-commands)))
+  (when-let ((buffer (clm--get-buffer)))
+    (with-current-buffer buffer
+      (message
+       (propertize
+        (format "Show all commands: %s" clm--show-all-commands)
+        'face 'success)))))
 
 ;;;###autoload
 (defun clm-save-command-log ()
@@ -299,7 +315,8 @@ KILL will kill the buffer after deleting its window."
   "Determine whether keyboard command CMD should be logged."
   ;; TODO check pause
   ;; TODO check minibuffer is logging
-  (not (member cmd clm-exceptions)))
+  (or clm--show-all-commands
+      (not (member cmd clm-exceptions))))
 
 (defun clm--scroll-buffer-windows ()
   "Move `point' to end of windows containing log buffer."
