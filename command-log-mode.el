@@ -191,12 +191,11 @@ Passing a prefix CLEAR will clear the buffer before display."
         (clm--show-buffer clear)))))
 
 ;;;###autoload
-(defun clm-close-command-log-buffer ()
-  "Close the command log window."
-  (interactive)
-  (when (clm--buffer-visible-p)
-    (dolist (win (clm--get-buffer-window-list) nil)
-      (delete-window win))))
+(defun clm-close-command-log-buffer (&optional kill)
+  "Close the command log window.
+Prefix argument will KILL buffer."
+  (interactive "P")
+  (clm--hide-buffer kill))
 
 ;;;###autoload
 (defun clm-command-log-clear ()
@@ -204,8 +203,8 @@ Passing a prefix CLEAR will clear the buffer before display."
   (interactive)
   (let ((buffer (clm--get-buffer)))
     (when buffer
-      (with-current-buffer buffer)
-      (erase-buffer))))
+      (with-current-buffer buffer
+        (erase-buffer)))))
 
 ;;;###autoload
 (defun clm-save-command-log ()
