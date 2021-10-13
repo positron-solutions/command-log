@@ -145,6 +145,9 @@ should be put here."
 (defvar clm--last-keyboard-command nil
   "Last logged keyboard command.")
 
+(defvar clm--last-command-keys nil
+  "Last key description for `this-command-keys'.")
+
 (defvar clm--recent-history-string ""
   "This string will hold recently typed text.")
 
@@ -318,12 +321,14 @@ KILL will kill the buffer after deleting its window."
         ;; variables by creating local lexical variables with their values.
         (this-command this-command)
         (buffer (clm--get-buffer))
-        (cmd (or cmd this-command)))
+        (cmd (or cmd this-command))
+        (keys (key-description (this-command-keys))))
     (when (and buffer (clm--should-log-command-p cmd))
       (with-current-buffer buffer
         (let ((current (current-buffer)))
           (goto-char (point-max))
-          (cond ((and clm-merge-repeats (eq cmd clm--last-keyboard-command))
+          (cond ((and clm-merge-repeats (and (eq cmd clm--last-keyboard-command)
+                                             (string= keys clm--last-command-keys)))
                  (cl-incf clm--command-repetitions)
                  (save-match-data
                    (when (and (> clm--command-repetitions 1)
@@ -336,16 +341,16 @@ KILL will kill the buffer after deleting its window."
                                       " times]")
                                      'face 'clm-repeat-face)))
                 (t
-        	 (when (and clm-log-text clm-merge-repeats)
-                   ;; showing accumulated text with interleaved key presses isn't very useful
-        	   (if (eq clm--last-keyboard-command 'self-insert-command)
-        	        (insert (propertize
-                                 (concat "[text: " clm--recent-history-string "]\n")
-                                 'face 'clm-repeat-face))))
+        	 ;; (when (and clm-log-text clm-merge-repeats)
+                 ;;   ;; showing accumulated text with interleaved key presses isn't very useful
+        	 ;;   (if (eq clm--last-keyboard-command 'self-insert-command)
+        	 ;;        (insert (propertize
+                 ;;                 (concat "[text: " clm--recent-history-string "]\n")
+                 ;;                 'face 'clm-repeat-face))))
                  (setq clm--command-repetitions 0)
                  (insert
                   (propertize
-                   (key-description (this-command-keys))
+                   keys
                    :time  (format-time-string clm-time-string (current-time))
                    'face 'clm-key-face))
                  (when (>= (current-column) clm-log-command-indentation)
@@ -356,7 +361,8 @@ KILL will kill the buffer after deleting its window."
                     (if (byte-code-function-p cmd) "<bytecode>" (symbol-name cmd))
                     'face 'clm-command-face))
                  (newline)
-                 (setq clm--last-keyboard-command cmd)))
+                 (setq clm--last-keyboard-command cmd)
+                 (setq clm--last-command-keys keys)))
           (clm--zap-recent-history cmd)
           (clm--scroll-buffer-windows))))))
 
