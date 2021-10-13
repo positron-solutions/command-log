@@ -335,28 +335,28 @@ KILL will kill the buffer after deleting its window."
                                       (number-to-string (1+ clm--command-repetitions))
                                       " times]")
                                      'face 'clm-repeat-face)))
-                 (t
-        	  (when (and clm-log-text clm-merge-repeats)
-                    ;; showing accumulated text with interleaved key presses isn't very useful
-        	    (if (eq clm--last-keyboard-command 'self-insert-command)
+                (t
+        	 (when (and clm-log-text clm-merge-repeats)
+                   ;; showing accumulated text with interleaved key presses isn't very useful
+        	   (if (eq clm--last-keyboard-command 'self-insert-command)
         	        (insert (propertize
                                  (concat "[text: " clm--recent-history-string "]\n")
                                  'face 'clm-repeat-face))))
-                  (setq clm--command-repetitions 0)
-                  (insert
-                   (propertize
-                    (key-description (this-command-keys))
-                    :time  (format-time-string clm-time-string (current-time))
-                    'face 'clm-key-face))
-                  (when (>= (current-column) clm-log-command-indentation)
-                    (newline))
-                  (move-to-column clm-log-command-indentation t)
-                  (insert
-                   (propertize
+                 (setq clm--command-repetitions 0)
+                 (insert
+                  (propertize
+                   (key-description (this-command-keys))
+                   :time  (format-time-string clm-time-string (current-time))
+                   'face 'clm-key-face))
+                 (when (>= (current-column) clm-log-command-indentation)
+                   (newline))
+                 (move-to-column clm-log-command-indentation t)
+                 (insert
+                  (propertize
                     (if (byte-code-function-p cmd) "<bytecode>" (symbol-name cmd))
                     'face 'clm-command-face))
-                  (newline)
-                  (setq clm--last-keyboard-command cmd)))
+                 (newline)
+                 (setq clm--last-keyboard-command cmd)))
           (clm--zap-recent-history cmd)
           (clm--scroll-buffer-windows))))))
 
