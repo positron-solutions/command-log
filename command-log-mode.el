@@ -129,7 +129,7 @@ should be put here."
   :group 'command-log
   :type 'boolean)
 
-(defcustom clm-logging-dir "~/log/"
+(defcustom clm-logging-dir "~/.emacs.d/etc/command-log-mode/"
   "Directory in which to store files containing logged commands."
   :group 'command-log
   :type 'directory)
