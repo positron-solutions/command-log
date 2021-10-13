@@ -321,10 +321,11 @@ KILL will kill the buffer after deleting its window."
 (defun clm--scroll-buffer-windows ()
   "Move `point' to end of windows containing log buffer."
   (when (clm--buffer-visible-p)
-    (dolist (win (clm--get-buffer-window-list) nil)
-      (save-window-excursion
+    (let ((current (selected-window)))
+      (dolist (win (clm--get-buffer-window-list) nil)
         (select-window win)
-        (goto-char (point-max))))))
+        (goto-char (point-max)))
+      (select-window current))))
 
 (defun clm--zap-recent-history (cmd)
   "Clear history if CMD is not exception or `self-insert-command'."
