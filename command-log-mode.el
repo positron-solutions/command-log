@@ -119,8 +119,10 @@ should be put here."
   :group 'command-log
   :type '(repeat symbol))
 
-(defcustom clm-log-text t
-  "A non-nil setting means text will be saved to the command log."
+(defcustom clm-log-text nil
+  "Log text as strings instead of `self-insert-commands'.
+You may want to just except `self-insert-command' by adding it to
+`clm-exceptions'."
   :group 'command-log
   :type 'boolean)
 
