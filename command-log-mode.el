@@ -318,6 +318,7 @@ KILL will kill the buffer after deleting its window."
   ;; TODO check pause
   ;; TODO check minibuffer is logging
   (or clm--show-all-commands
+      (and clm-log-text (eq cmd #'self-insert-command))
       (not (member cmd clm-exceptions))))
 
 (defun clm--scroll-buffer-windows ()
@@ -331,9 +332,9 @@ KILL will kill the buffer after deleting its window."
 
 (defun clm--zap-recent-history (cmd)
   "Clear history if CMD is not exception or `self-insert-command'."
-  (unless (or (member cmd
-		      clm-exceptions)
-	      (eq cmd #'self-insert-command))
+  (when (or clm--show-all-commands
+            (not (member cmd clm-exceptions))
+            (not (eq cmd #'self-insert-command)))
     (setq clm--recent-history-string "")))
 
 (defun clm--log-command (&optional cmd)
@@ -349,8 +350,12 @@ KILL will kill the buffer after deleting its window."
       (with-current-buffer buffer
         (let ((current (current-buffer)))
           (goto-char (point-max))
-          (cond ((and clm-merge-repeats (and (eq cmd clm--last-keyboard-command)
-                                             (string= keys clm--last-command-keys)))
+          (cond ((and clm-merge-repeats
+                      (not (and clm-log-text
+                                (eq cmd #'self-insert-command)
+                                (not clm--show-all-commands)))
+                      (and (eq cmd clm--last-keyboard-command)
+                           (string= keys clm--last-command-keys)))
                  (cl-incf clm--command-repetitions)
                  (save-match-data
                    (when (and (> clm--command-repetitions 1)
@@ -362,13 +367,18 @@ KILL will kill the buffer after deleting its window."
                                       (number-to-string (1+ clm--command-repetitions))
                                       " times]")
                                      'face 'clm-repeat-face)))
+                ((and (and clm-log-text (not clm--show-all-commands))
+                                    (eq cmd #'self-insert-command))
+                 (when (eq clm--last-keyboard-command #'self-insert-command)
+                   (delete-char -1)
+                   (delete-region (line-beginning-position) (line-end-position)))
+                 (setq clm--recent-history-string (concat clm--recent-history-string keys))
+                 (setq clm--last-keyboard-command cmd)
+                 (setq clm--last-command-keys keys)
+        	 (insert (propertize
+                          (concat "[text: " clm--recent-history-string "]\n")
+                          'face 'clm-repeat-face)))
                 (t
-        	 ;; (when (and clm-log-text clm-merge-repeats)
-                 ;;   ;; showing accumulated text with interleaved key presses isn't very useful
-        	 ;;   (if (eq clm--last-keyboard-command 'self-insert-command)
-        	 ;;        (insert (propertize
-                 ;;                 (concat "[text: " clm--recent-history-string "]\n")
-                 ;;                 'face 'clm-repeat-face))))
                  (setq clm--command-repetitions 0)
                  (insert
                   (propertize
@@ -383,9 +393,9 @@ KILL will kill the buffer after deleting its window."
                     (if (byte-code-function-p cmd) "<bytecode>" (symbol-name cmd))
                     'face 'clm-command-face))
                  (newline)
-                 (setq clm--last-keyboard-command cmd)
-                 (setq clm--last-command-keys keys)))
-          (clm--zap-recent-history cmd)
+                 (setq clm--last-command-keys keys)
+                 (setq clm--last-keyboard-command cmd)))
+          (clm--zap-recent-history cmd) ; could be inside condition expression
           (clm--scroll-buffer-windows))))))
 
 (provide 'command-log-mode)
