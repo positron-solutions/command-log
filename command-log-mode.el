@@ -46,7 +46,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 
 (defgroup command-log nil
   "Customization for the command log."
