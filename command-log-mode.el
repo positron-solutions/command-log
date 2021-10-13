@@ -149,25 +149,20 @@ should be put here."
 (defvar clm--command-log-buffer nil
   "Reference of the currenly used buffer to display logged commands.")
 
-(defvar clm--recent-history-string ""
-  "This string will hold recently typed text.")
-
 (defvar clm--command-repetitions 0
   "Count of how often the last keyboard commands has been repeated.")
 
 (defvar clm--last-keyboard-command nil
   "Last logged keyboard command.")
 
-(defun clm--recent-history ()
+(defvar clm--recent-history-string ""
+  "This string will hold recently typed text.")
+
+(defun clm--push-history ()
+  "Push the character entered into the buffer into the recent history."
   (setq clm--recent-history-string
 	(concat clm--recent-history-string
-		(buffer-substring-no-properties (- (point) 1) (point)))))
-
-(defun clm--zap-recent-history ()
-  (unless (or (member this-original-command
-		      clm-log-command-exceptions)
-	      (eq this-original-command #'self-insert-command))
-    (setq clm--recent-history-string "")))
+		(key-description (this-command-keys)))))
 
 ;;;###autoload
 (define-minor-mode command-log-mode
@@ -285,14 +280,19 @@ Scrolling up can be accomplished with:
      (with-current-buffer clm--command-log-buffer
        ,@body)))
 
+(defun clm--zap-recent-history (cmd)
+  "Clear history if CMD is not exception or `self-insert-command'."
+  (unless (or (member this-command
+		      clm-exceptions)
+	      (eq this-command #'self-insert-command))
+    (setq clm--recent-history-string "")))
+
 (defun clm--log-command (&optional cmd)
   "Log CMD to the clm--buffer."
   (let ((deactivate-mark nil) ; do not deactivate mark in transient mark mode
-        ;; Don't let random commands change `this-command' and `last-command'
-        ;; Emacs global variables by creating local lexical variables with
-        ;; their values.
-        (this-command this-command)
-        (last-command last-command))
+        ;; Don't let random commands change `this-command' Emacs global
+        ;; variables by creating local lexical variables with their values.
+        (this-command this-command))
     (setq cmd (or cmd this-command))
     (when (clm--should-log-command-p cmd)
       (clm-with-command-log-buffer
@@ -310,28 +310,29 @@ Scrolling up can be accomplished with:
                                       (number-to-string (1+ clm--command-repetitions))
                                       " times]")
                                      'face 'clm-repeat-face)))
-                (t ;; (message "last cmd: %s cur: %s" last-command cmd)
-                 ;; showing accumulated text with interleaved key presses isn't very useful
-        	 (when (and clm-log-text clm-merge-repeats)
-        	   (if (eq clm--last-keyboard-command 'self-insert-command)
-        	       (insert (propertize
-                                (concat "[text: " clm--recent-history-string "]\n")
-                                'face 'clm-repeat-face))))
-                 (setq clm--command-repetitions 0)
-                 (insert
-                  (propertize
-                   (key-description (this-command-keys))
-                   :time  (format-time-string clm-time-string (current-time))
-                   'face 'clm-key-face))
-                 (when (>= (current-column) clm-log-command-indentation)
-                   (newline))
-                 (move-to-column clm-log-command-indentation t)
-                 (insert
-                  (propertize
-                   (if (byte-code-function-p cmd) "<bytecode>" (symbol-name cmd))
-                   'face 'clm-command-face))
-                 (newline)
-                 (setq clm--last-keyboard-command cmd)))
+                 (t
+        	  (when (and clm-log-text clm-merge-repeats)
+                    ;; showing accumulated text with interleaved key presses isn't very useful
+        	    (if (eq clm--last-keyboard-command 'self-insert-command)
+        	        (insert (propertize
+                                 (concat "[text: " clm--recent-history-string "]\n")
+                                 'face 'clm-repeat-face))))
+                  (setq clm--command-repetitions 0)
+                  (insert
+                   (propertize
+                    (key-description (this-command-keys))
+                    :time  (format-time-string clm-time-string (current-time))
+                    'face 'clm-key-face))
+                  (when (>= (current-column) clm-log-command-indentation)
+                    (newline))
+                  (move-to-column clm-log-command-indentation t)
+                  (insert
+                   (propertize
+                    (if (byte-code-function-p cmd) "<bytecode>" (symbol-name cmd))
+                    'face 'clm-command-face))
+                  (newline)
+                  (setq clm--last-keyboard-command cmd)))
+          (clm--zap-recent-history cmd)
           (clm-scroll-buffer-window current))))))
 
 (defun clm-command-log-clear ()
@@ -366,8 +367,7 @@ Clears the command log buffer after saving."
     (clm-command-log-clear)))
 
 ;; TODO only hook when modes activated and unhook when deactivating
-(add-hook 'post-self-insert-hook 'clm--recent-history)
-(add-hook 'post-command-hook 'clm--zap-recent-history)
+(add-hook 'post-self-insert-hook 'clm--push-history)
 (add-hook 'pre-command-hook 'clm--log-command)
 
 ;; TODO use normal binding interface
