@@ -21,10 +21,8 @@
         (clm-open-log-turns-on-mode t "Show buffer enables mode")
         (clm-close-log-turns-off-mode t "Show buffer disables mode")
         (clm-log-globally "Auto-enable with global minor mode (including minibuffer)")
-        :config
-
-        ;; Be chatty.  Show everything besides self-insert-command
-        (setq clm-log-command-exceptions '(self-insert-command)))
+        (clm-log-command-exceptions '(self-insert-command) "Be chatty.
+        Show everything besides self-insert-command"))
 
    #+end_src
 

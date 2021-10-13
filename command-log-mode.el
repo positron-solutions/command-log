@@ -117,7 +117,7 @@
   :group 'command-log
   :type 'boolean)
 
-(defcustom clm-log-command-exceptions
+(defcustom clm-exceptions
   '(self-insert-command
     handle-switch-frame)
   "A list commands which should not be logged, despite logging being enabled.
