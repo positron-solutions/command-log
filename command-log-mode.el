@@ -371,7 +371,7 @@ KILL will kill the buffer after deleting its window."
                  (when (eq clm--last-keyboard-command #'self-insert-command)
                    (delete-char -1)
                    (delete-region (line-beginning-position) (line-end-position)))
-                 (setq clm--recent-history-string (concat clm--recent-history-string keys))
+                 (setq clm--recent-history-string (concat clm--recent-history-string (kbd keys)))
                  (setq clm--last-keyboard-command cmd)
                  (setq clm--last-command-keys keys)
         	 (insert (propertize
