@@ -148,12 +148,6 @@ should be put here."
 (defvar clm--recent-history-string ""
   "This string will hold recently typed text.")
 
-(defun clm--push-history ()
-  "Push the character entered into the buffer into the recent history."
-  (setq clm--recent-history-string
-	(concat clm--recent-history-string
-		(key-description (this-command-keys)))))
-
 (define-minor-mode command-log-mode
   "Toggle keyboard command logging."
   :init-value nil
@@ -166,20 +160,6 @@ should be put here."
 (define-globalized-minor-mode global-command-log-mode command-log-mode command-log-mode
   "Enables minor mode in all buffers, including minibuffer."
   :group 'command-log)
-
-(defun clm--should-log-command-p (cmd)
-  "Determine whether keyboard command CMD should be logged."
-  ;; TODO check pause
-  ;; TODO check minibuffer is logging
-  (not (member cmd clm-exceptions)))
-
-;;;###autoload
-(defun clm-close-command-log-buffer ()
-  "Close the command log window."
-  (interactive)
-  (when (clm--buffer-visible-p)
-    (dolist (win (clm--get-buffer-window-list) nil)
-      (delete-window win))))
 
 ;;;###autoload
 (defun clm-toggle (&optional clear)
@@ -209,6 +189,113 @@ Passing a prefix CLEAR will clear the buffer before display."
         (command-log-mode t))
       (when clm-logging-shows-buffer
         (clm--show-buffer clear)))))
+
+;;;###autoload
+(defun clm-close-command-log-buffer ()
+  "Close the command log window."
+  (interactive)
+  (when (clm--buffer-visible-p)
+    (dolist (win (clm--get-buffer-window-list) nil)
+      (delete-window win))))
+
+;;;###autoload
+(defun clm-command-log-clear ()
+  "Clear the command log buffer."
+  (interactive)
+  (let ((buffer (clm--get-buffer)))
+    (when buffer
+      (with-current-buffer buffer)
+      (erase-buffer))))
+
+;;;###autoload
+(defun clm-save-command-log ()
+  "Save commands to today's log.
+Clears the command log buffer after saving."
+  (interactive)
+  (let ((buffer (clm--get-buffer)))
+    (when buffer
+      (save-window-excursion
+        (set-buffer buffer)
+        (goto-char (point-min))
+        (let ((now (format-time-string "%Y-%02m-%02d %02H:%02M:%02S"))
+	      (write-region-annotate-functions '(clm--line-time)))
+          (while (and (re-search-forward "^.*" nil t)
+		      (not (eobp)))
+	    (append-to-file (line-beginning-position) (1+ (line-end-position)) (concat clm-logging-dir now))))
+        (erase-buffer)))))
+
+(defun clm--line-time (start _end)
+  "Return time at START as [timestamp].
+END is ignored"
+  (save-excursion
+    (goto-char start)
+    (let ((time (get-text-property (point) :time)))
+      (if time
+	  (list (cons start (if time
+				(concat "[" (get-text-property (point) :time) "] ")
+			      "")))))))
+
+(defun clm--get-buffer ()
+  "Just get the configured command log buffer."
+  (get-buffer clm-buffer-name))
+
+(defun clm--buffer-visible-p ()
+  "Is the buffer already open and visible?"
+  (let ((buffer (clm--get-buffer)))
+    (and buffer (get-buffer-window buffer))))
+
+(defun clm--get-buffer-window-list ()
+  "Get the buffer windows or return empty list."
+  (let ((buffer (clm--get-buffer)))
+    (if buffer (get-buffer-window-list buffer)
+      (list))))
+
+(defun clm--show-buffer (&optional clear)
+  "Displays the command log buffer in a window.
+CLEAR will clear the buffer if it exists before returning it."
+  (let ((buffer (clm--setup-buffer clear)))
+    (let ((win (get-buffer-window buffer)))
+      (unless (windowp win)
+        (let ((new-win (split-window-horizontally
+                        (- 0 clm-window-size))))
+          (set-window-buffer new-win buffer)
+          (set-window-dedicated-p new-win t)))
+      buffer)))
+
+(defun clm--setup-buffer (&optional clear)
+  "Setup (and create) the command-log-mode buffer.
+CLEAR will clear the buffer if it exists before returning it."
+  (let ((created (not (clm--get-buffer)))
+        (buffer (get-buffer-create clm-buffer-name)))
+    (progn (if created
+               (with-current-buffer buffer
+                 (text-scale-set clm-window-text-scale))
+             (when clear
+               (with-current-buffer buffer
+                 (erase-buffer))))
+           buffer)))
+
+(defun clm--hide-buffer (&optional kill)
+  "Delete the buffer window, kill if prefix argument.
+KILL will kill the buffer after deleting its window."
+  (let ((buffer (get-buffer clm-buffer-name)))
+    (when buffer
+      (dolist (win (get-buffer-window-list buffer) nil)
+        (delete-window win))
+      (when kill
+        (kill-buffer buffer)))))
+
+(defun clm--push-history ()
+  "Push the character entered into the buffer into the recent history."
+  (setq clm--recent-history-string
+	(concat clm--recent-history-string
+		(key-description (this-command-keys)))))
+
+(defun clm--should-log-command-p (cmd)
+  "Determine whether keyboard command CMD should be logged."
+  ;; TODO check pause
+  ;; TODO check minibuffer is logging
+  (not (member cmd clm-exceptions)))
 
 (defun clm--scroll-buffer-windows ()
   "Move `point' to end of windows containing log buffer."
@@ -273,94 +360,6 @@ Passing a prefix CLEAR will clear the buffer before display."
                   (setq clm--last-keyboard-command cmd)))
           (clm--zap-recent-history cmd)
           (clm--scroll-buffer-windows))))))
-
-;;;###autoload
-(defun clm-command-log-clear ()
-  "Clear the command log buffer."
-  (interactive)
-  (let ((buffer (clm--get-buffer)))
-    (when buffer
-      (with-current-buffer buffer)
-      (erase-buffer))))
-
-(defun clm--line-time (start end)
-  "Return time at START as [timestamp].
-END is ignored"
-  (save-excursion
-    (goto-char start)
-    (let ((time (get-text-property (point) :time)))
-      (if time
-	  (list (cons start (if time 
-				(concat "[" (get-text-property (point) :time) "] ")
-			      "")))))))
-
-;;;###autoload
-(defun clm-save-command-log ()
-  "Save commands to today's log.
-Clears the command log buffer after saving."
-  (interactive)
-  (let ((buffer (clm--get-buffer)))
-    (when buffer
-      (save-window-excursion
-        (set-buffer buffer)
-        (goto-char (point-min))
-        (let ((now (format-time-string "%Y-%02m-%02d %02H:%02M:%02S"))
-	      (write-region-annotate-functions '(clm--line-time)))
-          (while (and (re-search-forward "^.*" nil t)
-		      (not (eobp)))
-	    (append-to-file (line-beginning-position) (1+ (line-end-position)) (concat clm-logging-dir now))))
-        (erase-buffer)))))
-
-
-(defun clm--get-buffer ()
-  "Just get the configured command log buffer."
-  (get-buffer clm-buffer-name))
-
-(defun clm--buffer-visible-p ()
-  "Is the buffer already open and visible?"
-  (let ((buffer (clm--get-buffer)))
-    (and buffer (get-buffer-window buffer))))
-
-(defun clm--get-buffer-window-list ()
-  "Get the buffer windows or return empty list."
-  (let ((buffer (clm--get-buffer)))
-    (if buffer (get-buffer-window-list buffer)
-      (list))))
-
-(defun clm--show-buffer (&optional clear)
-  "Displays the command log buffer in a window.
-CLEAR will clear the buffer if it exists before returning it."
-  (let ((buffer (clm--setup-buffer clear)))
-    (let ((win (get-buffer-window buffer)))
-      (unless (windowp win)
-        (let ((new-win (split-window-horizontally
-                        (- 0 clm-window-size))))
-          (set-window-buffer new-win buffer)
-          (set-window-dedicated-p new-win t)))
-      buffer)))
-
-(defun clm--setup-buffer (&optional clear)
-  "Setup (and create) the command-log-mode buffer.
-CLEAR will clear the buffer if it exists before returning it."
-  (let ((created (not (clm--get-buffer)))
-        (buffer (get-buffer-create clm-buffer-name)))
-    (progn (if created
-               (with-current-buffer buffer
-                 (text-scale-set clm-window-text-scale))
-             (when clear
-               (with-current-buffer buffer
-                 (erase-buffer))))
-           buffer)))
-
-(defun clm--hide-buffer (&optional kill)
-  "Delete the buffer window, kill if prefix argument.
-KILL will kill the buffer after deleting its window."
-  (let ((buffer (get-buffer clm-buffer-name)))
-    (when buffer
-      (dolist (win (get-buffer-window-list buffer) nil)
-        (delete-window win))
-      (when kill
-        (kill-buffer buffer)))))
 
 (provide 'command-log-mode)
 ;;; command-log-mode.el ends here
