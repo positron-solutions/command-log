@@ -141,6 +141,11 @@ should be put here."
   :group 'command-log
   :type 'directory)
 
+(defcustom clm-buffer-name " *command-log*"
+  "Name for displaying command log."
+  :group 'command-log
+  :type 'string)
+
 (defvar clm--command-log-buffer nil
   "Reference of the currenly used buffer to display logged commands.")
 
@@ -197,9 +202,9 @@ assumed."
   "Open or create a buffer used for logging keyboard commands.
 If ARG is Non-nil, the existing command log buffer is cleared."
   (interactive "P")
-  (with-current-buffer 
+  (with-current-buffer
       (setq clm--command-log-buffer
-            (get-buffer-create " *command-log*"))
+            (get-buffer-create clm-buffer-name))
     (text-scale-set clm-window-text-scale))
   (when arg
     (with-current-buffer clm--command-log-buffer
@@ -214,7 +219,7 @@ If ARG is Non-nil, the existing command log buffer is cleared."
   (interactive)
   (with-current-buffer
       (setq clm--command-log-buffer
-            (get-buffer-create " *command-log*"))
+            (get-buffer-create clm-buffer-name))
     (let ((win (get-buffer-window (current-buffer))))
       (when (windowp win)
         (delete-window win)))))
@@ -240,7 +245,7 @@ Passing a prefix ARG will clear the buffer before display."
 
   (with-current-buffer
       (setq clm--command-log-buffer
-            (get-buffer-create " *command-log*"))
+            (get-buffer-create clm-buffer-name))
     (let ((win (get-buffer-window (current-buffer))))
       (if (windowp win)
           (progn
@@ -351,7 +356,7 @@ END is ignored"
 Clears the command log buffer after saving."
   (interactive)
   (save-window-excursion
-    (set-buffer (get-buffer " *command-log*"))
+    (set-buffer (get-buffer clm-buffer-name))
     (goto-char (point-min))
     (let ((now (format-time-string "%Y-%m-%d"))
 	  (write-region-annotate-functions '(clm--line-time)))
