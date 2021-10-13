@@ -306,9 +306,9 @@ KILL will kill the buffer after deleting its window."
 
 (defun clm--zap-recent-history (cmd)
   "Clear history if CMD is not exception or `self-insert-command'."
-  (unless (or (member this-command
+  (unless (or (member cmd
 		      clm-exceptions)
-	      (eq this-command #'self-insert-command))
+	      (eq cmd #'self-insert-command))
     (setq clm--recent-history-string "")))
 
 (defun clm--log-command (&optional cmd)
