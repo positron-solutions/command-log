@@ -95,13 +95,6 @@
   :group 'command-log
   :type 'boolean)
 
-(defcustom clm-key-binding-open-log nil
-  "The key binding used to toggle the log window."
-  :group 'command-log
-  :type '(radio
-          (const :tag "No key" nil)
-          (key-sequence "C-c o"))) ;; this is not right though it works for kbd
-
 (defcustom clm-hiding-disables-logging t
   "Hiding the buffer deactivates logging modes."
   :group 'command-log
