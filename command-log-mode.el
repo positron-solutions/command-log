@@ -117,7 +117,7 @@
 Frequently used non-interesting commands (like cursor movements)
 should be put here."
   :group 'command-log
-  :type '(repeat symbol))
+  :type '(repeat (symbol :tag "command function name")))
 
 (defcustom clm-log-text nil
   "Log text as strings instead of `self-insert-commands'.
@@ -137,7 +137,9 @@ You may want to just except `self-insert-command' by adding it to
   :type 'directory)
 
 (defcustom clm-buffer-name " *command-log*"
-  "Name for displaying command log."
+  "Command log buffer name.
+You probably want to start with a space and wrap in asterisks so
+that this buffer will be ignored by other tools."
   :group 'command-log
   :type 'string)
 
