@@ -213,8 +213,8 @@ Clears the command log buffer after saving."
   (interactive)
   (let ((buffer (clm--get-buffer)))
     (when buffer
-      (save-window-excursion
-        (set-buffer buffer)
+      (with-current-buffer buffer
+        (make-directory clm-logging-dir :parents)
         (goto-char (point-min))
         (let ((now (format-time-string "%Y-%02m-%02d %02H:%02M:%02S"))
 	      (write-region-annotate-functions '(clm--line-time)))
