@@ -11,6 +11,20 @@
    Until and unless MELPA is updated, configure your package manager (which
    should support pointing at specific repositories) to use this repo.
 
+  #+begin_src elisp
+
+    ;; using straight use-package with custom recipe
+    (use-package command-log-mode
+      :straight '(command-log-mode
+                  :type git :host github :repo "positron-solutions/command-log-mode"))
+
+    ;; using elpaca (recommended to add a hash for reproducibility)
+    (elpaca-use-package
+     (command-log-mode :host github
+                         :repo "positron-solutions/command-log-mode"))
+
+  #+end_src
+
 ** How do I use it?
 
    Use the =clm-toggle= command.  The use-package configuration below will
