@@ -1,4 +1,4 @@
-;;; command-log-mode.el --- log keyboard commands to buffer -*- lexical-binding: t -*-
+;;; command-log-mode.el --- log inputs & commands to buffer -*- lexical-binding: t -*-
 
 ;; homepage: https://github.com/positron-solutons/command-log-mode
 
@@ -48,8 +48,8 @@
 
 (defgroup command-log nil
   "Customization for the command log."
-   :prefix 'clm
-   :group 'convenience)
+  :prefix 'clm
+  :group 'convenience)
 
 (defcustom clm-window-size 40
   "The size of the command-log window."
@@ -238,10 +238,12 @@ Clears the command log buffer after saving."
         (make-directory clm-logging-dir :parents)
         (goto-char (point-min))
         (let ((now (format-time-string "%Y-%02m-%02d %02H:%02M:%02S"))
-	      (write-region-annotate-functions '(clm--line-time)))
+              (write-region-annotate-functions '(clm--line-time)))
           (while (and (re-search-forward "^.*" nil t)
-		      (not (eobp)))
-	    (append-to-file (line-beginning-position) (1+ (line-end-position)) (concat clm-logging-dir now))))
+                      (not (eobp)))
+            (append-to-file (line-beginning-position)
+                            (1+ (line-end-position))
+                            (concat clm-logging-dir now))))
         (erase-buffer)))))
 
 (defun clm--line-time (start _end)
@@ -251,9 +253,9 @@ END is ignored"
     (goto-char start)
     (let ((time (get-text-property (point) :time)))
       (if time
-	  (list (cons start (if time
-				(concat "[" (get-text-property (point) :time) "] ")
-			      "")))))))
+          (list (cons start (if time
+                                (concat "[" (get-text-property (point) :time) "] ")
+                              "")))))))
 
 (defun clm--get-buffer ()
   "Just get the configured command log buffer."
@@ -308,8 +310,8 @@ KILL will kill the buffer after deleting its window."
 (defun clm--push-history ()
   "Push the character entered into the buffer into the recent history."
   (setq clm--recent-history-string
-	(concat clm--recent-history-string
-		(key-description (this-command-keys)))))
+        (concat clm--recent-history-string
+                (key-description (this-command-keys)))))
 
 (defun clm--should-log-command-p (cmd)
   "Determine whether keyboard command CMD should be logged."
@@ -366,14 +368,14 @@ KILL will kill the buffer after deleting its window."
                                       " times]")
                                      'face 'clm-repeat-face)))
                 ((and (and clm-log-text (not clm--show-all-commands))
-                                    (eq cmd #'self-insert-command))
+                      (eq cmd #'self-insert-command))
                  (when (eq clm--last-keyboard-command #'self-insert-command)
                    (delete-char -1)
                    (delete-region (line-beginning-position) (line-end-position)))
                  (setq clm--recent-history-string (concat clm--recent-history-string (kbd keys)))
                  (setq clm--last-keyboard-command cmd)
                  (setq clm--last-command-keys keys)
-        	 (insert (propertize
+                 (insert (propertize
                           (concat "[text: " clm--recent-history-string "]\n")
                           'face 'clm-repeat-face)))
                 (t
@@ -388,8 +390,8 @@ KILL will kill the buffer after deleting its window."
                  (move-to-column clm-log-command-indentation t)
                  (insert
                   (propertize
-                    (if (byte-code-function-p cmd) "<bytecode>" (symbol-name cmd))
-                    'face 'clm-command-face))
+                   (if (byte-code-function-p cmd) "<bytecode>" (symbol-name cmd))
+                   'face 'clm-command-face))
                  (newline)
                  (setq clm--last-command-keys keys)
                  (setq clm--last-keyboard-command cmd)))
