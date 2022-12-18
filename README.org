@@ -40,7 +40,11 @@
 
 ** License
 
+   All post-fork work is GPL licensed.  This increasingly covers most of the
+   package.  The CI is MIT licensed for ease of use.  See [[./CONTRIBUTING.org][CONTRIBUTING.org]] for
+   information about submitting changes correctly.
+
    This package is a fork of [[http://www.foldr.org/~michaelw/emacs/mwe-log-commands.el][mwe-log-commands.el]] by Michael Weber
-   <michaelw@foldr.org>  The link is broken, but the [[https://github.com/lewang/command-log-mode/commit/dbaae64724589007d8bd776e6bf38ca2cb88156b][original commit]] indicates that
-   it was GPL2+ licensed, including the other forks.  Thanks to others in git
-   history or appear in copyright notices.
+   <michaelw@foldr.org> The link is broken, but the [[https://github.com/lewang/command-log-mode/commit/dbaae64724589007d8bd776e6bf38ca2cb88156b][original commit]] indicates
+   that it was GPL2+ licensed, including the other forks.  Thanks to others who
+   are in git history or appear in copyright notices.
