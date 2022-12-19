@@ -244,7 +244,8 @@ Clears the command log buffer after saving."
             (append-to-file (line-beginning-position)
                             (1+ (line-end-position))
                             (concat clm-logging-dir now))))
-        (erase-buffer)))))
+        (when (y-or-n-p "Erase buffer?")
+          (erase-buffer))))))
 
 (defun clm--line-time (start _end)
   "Return time at START as [timestamp].
