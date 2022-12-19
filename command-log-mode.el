@@ -58,7 +58,6 @@
 
 (defcustom clm-window-text-scale 0
   "The text scale of the command-log window.
-
 +1,+2,... increase and -1,-2,... decrease the font size."
   :group 'command-log
   :type 'integer)
@@ -349,55 +348,53 @@ KILL will kill the buffer after deleting its window."
         (keys (key-description (this-command-keys))))
     (when (and buffer (clm--should-log-command-p cmd))
       (with-current-buffer buffer
-        (let ((current (current-buffer)))
-          (goto-char (point-max))
-          (cond ((and clm-merge-repeats
-                      (not (and clm-log-text
-                                (eq cmd #'self-insert-command)
-                                (not clm--show-all-commands)))
-                      (and (eq cmd clm--last-keyboard-command)
-                           (string= keys clm--last-command-keys)))
-                 (cl-incf clm--command-repetitions)
-                 (save-match-data
-                   (when (and (> clm--command-repetitions 1)
-                              (search-backward "[" (line-beginning-position -1) t))
-                     (delete-region (point) (line-end-position))))
-                 (backward-char) ; skip over either ?\newline or ?\space before ?\[
-                 (insert (propertize (concat
-                                      " ["
-                                      (number-to-string (1+ clm--command-repetitions))
-                                      " times]")
-                                     'face 'clm-repeat-face)))
-                ((and (and clm-log-text (not clm--show-all-commands))
-                      (eq cmd #'self-insert-command))
-                 (when (eq clm--last-keyboard-command #'self-insert-command)
-                   (delete-char -1)
-                   (delete-region (line-beginning-position) (line-end-position)))
-                 (setq clm--recent-history-string (concat clm--recent-history-string (kbd keys)))
-                 (setq clm--last-keyboard-command cmd)
-                 (setq clm--last-command-keys keys)
-                 (insert (propertize
-                          (concat "[text: " clm--recent-history-string "]\n")
-                          'face 'clm-repeat-face)))
-                (t
-                 (setq clm--command-repetitions 0)
-                 (insert
-                  (propertize
-                   keys
-                   :time  (format-time-string clm-time-string (current-time))
-                   'face 'clm-key-face))
-                 (when (>= (current-column) clm-log-command-indentation)
-                   (newline))
-                 (move-to-column clm-log-command-indentation t)
-                 (insert
-                  (propertize
-                   (if (byte-code-function-p cmd) "<bytecode>" (symbol-name cmd))
-                   'face 'clm-command-face))
-                 (newline)
-                 (setq clm--last-command-keys keys)
-                 (setq clm--last-keyboard-command cmd)))
-          (clm--zap-recent-history cmd) ; could be inside condition expression
-          (clm--scroll-buffer-windows))))))
+        (goto-char (point-max))
+        (cond ((and clm-merge-repeats
+                    (not (and clm-log-text
+                              (eq cmd #'self-insert-command)
+                              (not clm--show-all-commands)))
+                    (and (eq cmd clm--last-keyboard-command)
+                         (string= keys clm--last-command-keys)))
+               (cl-incf clm--command-repetitions)
+               (save-match-data
+                 (when (and (> clm--command-repetitions 1)
+                            (search-backward "[" (line-beginning-position -1) t))
+                   (delete-region (point) (line-end-position))))
+               (backward-char) ; skip over either ?\newline or ?\space before ?\[
+               (insert (propertize (concat" ["
+                                    (number-to-string (1+ clm--command-repetitions))
+                                    " times]")
+                                   'face 'clm-repeat-face)))
+              ((and (and clm-log-text (not clm--show-all-commands))
+                    (eq cmd #'self-insert-command))
+               (when (eq clm--last-keyboard-command #'self-insert-command)
+                 (delete-char -1)
+                 (delete-region (line-beginning-position) (line-end-position)))
+               (setq clm--recent-history-string (concat clm--recent-history-string (kbd keys)))
+               (setq clm--last-keyboard-command cmd)
+               (setq clm--last-command-keys keys)
+               (insert (propertize
+                        (concat "[text: " clm--recent-history-string "]\n")
+                        'face 'clm-repeat-face)))
+              (t
+               (setq clm--command-repetitions 0)
+               (insert
+                (propertize
+                 keys
+                 :time  (format-time-string clm-time-string (current-time))
+                 'face 'clm-key-face))
+               (when (>= (current-column) clm-log-command-indentation)
+                 (newline))
+               (move-to-column clm-log-command-indentation t)
+               (insert
+                (propertize
+                 (if (byte-code-function-p cmd) "<bytecode>" (symbol-name cmd))
+                 'face 'clm-command-face))
+               (newline)
+               (setq clm--last-command-keys keys)
+               (setq clm--last-keyboard-command cmd)))
+        (clm--zap-recent-history cmd) ; could be inside condition expression
+        (clm--scroll-buffer-windows)))))
 
 (provide 'command-log-mode)
 ;;; command-log-mode.el ends here
