@@ -74,7 +74,7 @@
   :group 'command-log)
 
 (defface clm-command-face
-  '((t :inherit font-lock-function-name-face))
+  '((t :inherit font-lock-doc-markup-face))
   "Face for commands in command log."
   :group 'command-log)
 
@@ -155,6 +155,26 @@ that this buffer will be ignored by other tools."
 
 (defvar clm--show-all-commands nil
   "Override `clm-exceptions' and show all commands instead.")
+
+(declare-function helpful-at-point "helpful" ())
+(defun clm--push-button ()
+  "Open help for command at point.
+Use `helpful' package if loaded."
+  (interactive)
+  (if (featurep 'helpful)
+      (helpful-at-point)
+    (describe-symbol (symbol-at-point))))
+
+(defvar command-log-output-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map button-buffer-map)
+    (define-key map [remap push-button] 'clm--push-button)
+    map))
+
+(define-derived-mode command-log-output-mode fundamental-mode
+  'command-log-output-mode
+  "Major mode for command log output buffers."
+  :interactive nil)
 
 (define-minor-mode command-log-mode
   "Toggle keyboard command logging."
@@ -292,6 +312,7 @@ CLEAR will clear the buffer if it exists before returning it."
         (buffer (get-buffer-create clm-buffer-name)))
     (set-buffer buffer)
     (if created
+        (command-log-output-mode)
         (text-scale-set clm-window-text-scale)
       (when clear
         (erase-buffer)))
@@ -387,9 +408,12 @@ KILL will kill the buffer after deleting its window."
                  (newline))
                (move-to-column clm-log-command-indentation t)
                (insert
-                (propertize
-                 (if (byte-code-function-p cmd) "<bytecode>" (symbol-name cmd))
-                 'face 'clm-command-face))
+                (if (byte-code-function-p cmd)
+                    (propertize "<bytecode>" 'face 'clm-command-face)
+                  (propertize (symbol-name cmd)
+                              'face 'clm-command-face
+                              'button '(t)
+                              'category 'default-button)))
                (newline)
                (setq clm--last-command-keys keys)
                (setq clm--last-keyboard-command cmd)))
