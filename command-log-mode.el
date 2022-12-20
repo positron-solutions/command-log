@@ -314,8 +314,16 @@ END is ignored"
 CLEAR will clear the buffer if it exists before returning it."
   (let ((buffer (clm--setup-buffer clear)))
     (unless (windowp (get-buffer-window buffer))
+      ;; attempt to inhibit resize of side window
+      (with-current-buffer buffer
+        (setq-local window-size-fixed
+                    (pcase clm-default-side
+                      ('left 'width)
+                      ('right 'width)
+                      ('top 'height)
+                      ('bottom 'height))))
       (display-buffer-in-side-window
-       buffer `((dedicated . p) (side . ,clm-default-side))))))
+       buffer `((dedicated . nil) (side . ,clm-default-side))))))
 
 (defun clm--setup-buffer (&optional clear)
   "Setup (and create) the command-log-mode buffer.
