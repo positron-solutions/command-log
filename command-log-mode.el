@@ -46,6 +46,8 @@
 
 (require 'cl-lib)
 (require 'comint)
+(require 'button)
+(require 'simple)
 
 (defconst clm--mouse-event-regex
   (rx bol "mouse") "Used in `clm--mouse-event-p'.")
@@ -179,9 +181,10 @@ Use `helpful' package if loaded."
     (describe-symbol (symbol-at-point))))
 
 (defvar command-log-output-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map button-buffer-map)
+  (let ((map (make-composed-keymap button-buffer-map special-mode-map)))
     (define-key map [remap push-button] 'clm--push-button)
+    (define-key map "g" nil)
+    ;; TODO check the definition of bury & quit
     map))
 
 (define-derived-mode command-log-output-mode fundamental-mode
