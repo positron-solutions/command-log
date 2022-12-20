@@ -47,6 +47,9 @@
 (require 'cl-lib)
 (require 'comint)
 
+(defconst clm--mouse-event-regex
+  (rx bol "mouse") "Used in `clm--mouse-event-p'.")
+
 (defgroup command-log nil
   "Customization for the command log."
   :prefix 'clm
@@ -121,6 +124,12 @@ should be put here."
   "Log text as strings instead of `self-insert-commands'.
 You may want to just except `self-insert-command' by adding it to
 `clm-exceptions'."
+  :group 'command-log
+  :type 'boolean)
+
+(defcustom clm-log-mouse nil
+  "Log mouse events.
+Toggling this is more conveneint than setting `clm-ignored-commands'."
   :group 'command-log
   :type 'boolean)
 
@@ -334,15 +343,31 @@ KILL will kill the buffer after deleting its window."
         (concat clm--recent-history-string
                 (key-description (this-command-keys)))))
 
-(defun clm--should-log-command-p (cmd)
-  "Determine whether keyboard command CMD should be logged."
+(defun clm--mouse-event-p (event)
+  "Return t if EVENT is mouse event.
+Emacs `mouse-event-p' reports nil for movement."
+  (let ((event-type (event-basic-type event)))
+    (when (symbolp event-type)
+      (string-match-p clm--mouse-event-regex
+                  (symbol-name event-type)))))
+
+(defun clm--should-log-command-p (cmd event)
+  "Determine whether keyboard command CMD should be logged.
+EVENT is the last input event that triggered the command."
   ;; TODO check pause
   ;; TODO check minibuffer is logging
-  (or clm--show-all-commands
-      (and (not (eq 'command-log-output-mode
-                    (buffer-local-value 'major-mode (current-buffer))))
-           (or (and clm-log-text (eq cmd #'self-insert-command))
-               (not (member cmd clm-exceptions))))))
+  (let ((mouse (clm--mouse-event-p event))
+        (text (eq cmd #'self-insert-command))
+        (filtered (member cmd clm-exceptions))
+        (in-log-buffer (eq 'command-log-output-mode
+                           (buffer-local-value 'major-mode (current-buffer)))))
+    (or clm--show-all-commands
+        (and (not in-log-buffer)
+             (or (if clm-log-mouse
+                     (not filtered)
+                   (and (not mouse)
+                        (not filtered)))
+                 (and clm-log-text text))))))
 
 (defun clm--scroll-buffer-windows ()
   "Move `point' to end of windows containing log buffer."
@@ -368,8 +393,9 @@ KILL will kill the buffer after deleting its window."
         (this-command this-command)
         (buffer (clm--get-buffer))
         (cmd (or cmd this-command))
+        (event last-command-event)
         (keys (key-description (this-command-keys))))
-    (when (and buffer (clm--should-log-command-p cmd))
+    (when (and buffer (clm--should-log-command-p cmd event))
       (with-current-buffer buffer
         (goto-char (point-max))
         (cond ((and clm-merge-repeats
