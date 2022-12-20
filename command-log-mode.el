@@ -349,7 +349,7 @@ Emacs `mouse-event-p' reports nil for movement."
   (let ((event-type (event-basic-type event)))
     (when (symbolp event-type)
       (string-match-p clm--mouse-event-regex
-                  (symbol-name event-type)))))
+                      (symbol-name event-type)))))
 
 (defun clm--should-log-command-p (cmd event)
   "Determine whether keyboard command CMD should be logged.
@@ -410,9 +410,9 @@ EVENT is the last input event that triggered the command."
                             (search-backward "[" (line-beginning-position -1) t))
                    (delete-region (point) (line-end-position))))
                (backward-char) ; skip over either ?\newline or ?\space before ?\[
-               (insert (propertize (concat" ["
-                                    (number-to-string (1+ clm--command-repetitions))
-                                    " times]")
+               (insert (propertize (concat " ["
+                                           (number-to-string (1+ clm--command-repetitions))
+                                           " times]")
                                    'face 'clm-repeat-face)))
               ((and (and clm-log-text (not clm--show-all-commands))
                     (eq cmd #'self-insert-command))
