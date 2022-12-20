@@ -339,8 +339,10 @@ KILL will kill the buffer after deleting its window."
   ;; TODO check pause
   ;; TODO check minibuffer is logging
   (or clm--show-all-commands
-      (and clm-log-text (eq cmd #'self-insert-command))
-      (not (member cmd clm-exceptions))))
+      (and (not (eq 'command-log-output-mode
+                    (buffer-local-value 'major-mode (current-buffer))))
+           (or (and clm-log-text (eq cmd #'self-insert-command))
+               (not (member cmd clm-exceptions))))))
 
 (defun clm--scroll-buffer-windows ()
   "Move `point' to end of windows containing log buffer."
