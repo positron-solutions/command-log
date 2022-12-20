@@ -321,8 +321,8 @@ CLEAR will clear the buffer if it exists before returning it."
         (buffer (get-buffer-create clm-buffer-name)))
     (set-buffer buffer)
     (if created
-        (command-log-output-mode)
-        (text-scale-set clm-window-text-scale)
+        (progn (command-log-output-mode)
+               (text-scale-set clm-window-text-scale))
       (when clear
         (erase-buffer)))
     buffer))
