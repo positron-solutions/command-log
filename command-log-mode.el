@@ -45,6 +45,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'comint)
 
 (defgroup command-log nil
   "Customization for the command log."
@@ -289,13 +290,12 @@ CLEAR will clear the buffer if it exists before returning it."
 CLEAR will clear the buffer if it exists before returning it."
   (let ((created (not (clm--get-buffer)))
         (buffer (get-buffer-create clm-buffer-name)))
-    (progn (if created
-               (with-current-buffer buffer
-                 (text-scale-set clm-window-text-scale))
-             (when clear
-               (with-current-buffer buffer
-                 (erase-buffer))))
-           buffer)))
+    (set-buffer buffer)
+    (if created
+        (text-scale-set clm-window-text-scale)
+      (when clear
+        (erase-buffer)))
+    buffer))
 
 (defun clm--hide-buffer (&optional kill)
   "Delete the buffer window, kill if prefix argument.
@@ -393,6 +393,9 @@ KILL will kill the buffer after deleting its window."
                (newline)
                (setq clm--last-command-keys keys)
                (setq clm--last-keyboard-command cmd)))
+        (when (> (count-lines (point-min) (point-max)) comint-max-line-length)
+          (goto-char (point-min))
+          (delete-line))
         (clm--zap-recent-history cmd) ; could be inside condition expression
         (clm--scroll-buffer-windows)))))
 
