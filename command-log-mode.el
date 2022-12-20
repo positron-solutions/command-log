@@ -149,10 +149,8 @@ Toggling this is more conveneint than setting `clm-ignored-commands'."
   :group 'command-log
   :type 'directory)
 
-(defcustom clm-buffer-name " *command-log*"
-  "Command log buffer name.
-You probably want to start with a space and wrap in asterisks so
-that this buffer will be ignored by other tools."
+(defcustom clm-buffer-name "*command-log*"
+  "Command log buffer name."
   :group 'command-log
   :type 'string)
 
