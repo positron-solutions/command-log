@@ -60,6 +60,12 @@
   :group 'command-log
   :type 'integer)
 
+(defcustom clm-default-side 'right
+  "Which side for use in `display-buffer-in-side-window'."
+  :group 'command-log
+  :type 'symbol
+  :options '(right left top bottom))
+
 (defcustom clm-window-text-scale 0
   "The text scale of the command-log window.
 +1,+2,... increase and -1,-2,... decrease the font size."
@@ -306,13 +312,9 @@ END is ignored"
   "Displays the command log buffer in a window.
 CLEAR will clear the buffer if it exists before returning it."
   (let ((buffer (clm--setup-buffer clear)))
-    (let ((win (get-buffer-window buffer)))
-      (unless (windowp win)
-        (let ((new-win (split-window-horizontally
-                        (- 0 clm-window-size))))
-          (set-window-buffer new-win buffer)
-          (set-window-dedicated-p new-win t)))
-      buffer)))
+    (unless (windowp (get-buffer-window buffer))
+      (display-buffer-in-side-window
+       buffer `((dedicated . p) (side . ,clm-default-side))))))
 
 (defun clm--setup-buffer (&optional clear)
   "Setup (and create) the command-log-mode buffer.
