@@ -42,6 +42,22 @@
 
 ;;; Code:
 
+(defun run-shim ()
+  "Execute a CI process based on CLI arguments."
+  (run-shim-setup)
+
+  ;; Consume the command argument and run one of the routines Additional
+  ;; arguments can be read as needed in sub-commands.
+  (let ((command (pop argv))) ; nil-safe
+
+    ;; Modify this hunk to change your CI steps
+    (cond ((string= command "test")
+           (require 'command-log)
+           (global-command-log-mode t))
+
+          ((string= command "lint") (run-shim-lint-package))
+          t (print "Command not recognized.  Use test, lint etc."))))
+
 (defun run-shim-lint-package ()
   "Lint the files in the package directory."
 
@@ -76,8 +92,9 @@
 
     (elisp-lint-files-batch)))
 
-(defun run-shim ()
-  "Execute a CI process based on CLI arguments."
+(defun run-shim-setup ()
+  "Normalize load paths, compilation, and behavior of shell arguments."
+
   ;; This expression normalizes the behavior of --quick --load <file> and --script
   ;; <file> behavior.  If you don't do this, --script will see every argument
   ;; passed and the arguments from the Nix wrapper to set load paths.  You can use
@@ -96,16 +113,8 @@
     (print (format "package load path: %s" lisp-dir))
     (push lisp-dir load-path))
 
-  ;; running manually may encounter stale .elc
-  (setq load-prefer-newer t)
-
-  ;; Consume the command argument and run one of the routines
-  (setq command (pop argv)) ; nil-safe
-  (cond ((string= command "test")
-         (require 'command-log)
-         (global-command-log-mode t))
-        ((string= command "lint") (run-shim-lint-package))
-        t (print "Command not recognized.  Use test, lint etc.")))
+  ;; don't load stale elc
+  (setq load-prefer-newer t))
 
 ;; Only attempt to run when Emacs is loading with or --batch --no-x-resources,
 ;; which is implied by -Q.
