@@ -119,7 +119,7 @@
   :group 'command-log
   :type 'boolean)
 
-(defcustom clm-exceptions
+(defcustom clm-filter-commands
   '(self-insert-command
     handle-switch-frame)
   "A list commands which should not be logged, despite logging being enabled.
@@ -131,7 +131,7 @@ should be put here."
 (defcustom clm-log-text nil
   "Log text as strings instead of `self-insert-commands'.
 You may want to just except `self-insert-command' by adding it to
-`clm-exceptions'."
+`clm-filter-commands'."
   :group 'command-log
   :type 'boolean)
 
@@ -169,7 +169,7 @@ Toggling this is more conveneint than setting `clm-ignored-commands'."
   "This string will hold recently typed text.")
 
 (defvar clm--show-all-commands nil
-  "Override `clm-exceptions' and show all commands instead.")
+  "Override `clm-filter-commands' and show all commands instead.")
 
 (declare-function helpful-at-point "helpful" ())
 (defun clm--push-button ()
@@ -252,7 +252,7 @@ Prefix argument will KILL buffer."
 
 ;;;###autoload
 (defun clm-toggle-show-all-commands (&optional arg)
-  "Override `clm-exceptions' and show everything.
+  "Override `clm-filter-commands' and show everything.
 ARG can be passed for direct setting."
   (interactive)
   (setq clm--show-all-commands (or arg (not clm--show-all-commands)))
@@ -369,7 +369,7 @@ EVENT is the last input event that triggered the command."
   ;; TODO check minibuffer is logging
   (let ((mouse (clm--mouse-event-p event))
         (text (eq cmd #'self-insert-command))
-        (filtered (member cmd clm-exceptions))
+        (filtered (member cmd clm-filter-commands))
         (in-log-buffer (eq 'command-log-output-mode
                            (buffer-local-value 'major-mode (current-buffer)))))
     (or clm--show-all-commands
@@ -390,9 +390,9 @@ EVENT is the last input event that triggered the command."
       (select-window current))))
 
 (defun clm--zap-recent-history (cmd)
-  "Clear history if CMD is not exception or `self-insert-command'."
+  "Clear history if CMD is not in `self-insert-command'."
   (when (or clm--show-all-commands
-            (not (member cmd clm-exceptions))
+            (not (member cmd clm-filter-commands))
             (not (eq cmd #'self-insert-command)))
     (setq clm--recent-history-string "")))
 
