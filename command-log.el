@@ -147,7 +147,8 @@ Toggling this is more conveneint than setting `command-log-ignored-commands'."
   :group 'command-log
   :type 'boolean)
 
-(defcustom command-log-logging-dir "~/.emacs.d/etc/command-log-mode/"
+(defcustom command-log-logging-dir (locate-user-emacs-file
+                                    "var/command-log-mode/")
   "Directory in which to store files containing logged commands."
   :group 'command-log
   :type 'directory)
