@@ -1,4 +1,4 @@
-;;; command-log.el --- log inputs & commands to buffer -*- lexical-binding: t -*-
+;;; command-log.el --- Log user inputs & commands -*- lexical-binding: t -*-
 
 ;; homepage: https://github.com/positron-solutons/command-log
 
@@ -8,28 +8,30 @@
 ;; Copyright (C) 2004 Free Software Foundation, Inc.
 
 ;; Author: Michael Weber <michaelw@foldr.org>
-;; Keywords: help
+;; Keywords: help docs
+;; Version: 0.1.0
+;; Package-Requires: ((emacs "28.0"))
 ;; Initial-version: <2004-10-07 11:41:28 michaelw>
 ;; Time-stamp: <2004-11-06 17:08:11 michaelw>
 
-;; This program is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
+;; This program is free software: you can redistribute it and/or modify it under
+;; the terms of the GNU General Public License as published by the Free Software
+;; Foundation, either version 3 of the License, or (at your option) any later
+;; version.
 
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
+;; This program is distributed in the hope that it will be useful, but WITHOUT
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+;; FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+;; details.
 
-;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; You should have received a copy of the GNU General Public License along with
+;; this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
-;; This add-on can be used to demo Emacs to an audience.  When
-;; activated, keystrokes get logged into a designated buffer, along
-;; with the command bound to them.
+;; This add-on can be used to demo Emacs to an audience.  When activated,
+;; keystrokes get logged into a designated buffer, along with the command bound
+;; to them.
 
 ;; To enable, use e.g.:
 ;;
@@ -37,10 +39,9 @@
 ;;
 ;; To see the log buffer, call M-x `command-log-toggle'.
 
-;; The key strokes in the log are decorated with ISO9601 timestamps on
-;; the property `:time' so if you want to convert the log for
-;; screencasting purposes you could use the time stamp as a key into
-;; the video beginning.
+;; The key strokes in the log are decorated with ISO9601 timestamps on the
+;; property `:time' so if you want to convert the log for screencasting purposes
+;; you could use the time stamp as a key into the video beginning.
 
 ;;; Code:
 
@@ -115,7 +116,7 @@
   :type 'boolean)
 
 (defcustom command-log-log-globally t
-  "Does turning on command-log-mode happen globally?"
+  "Does turning on `command-log-mode' happen globally?"
   :group 'command-log
   :type 'boolean)
 
@@ -192,15 +193,18 @@ Use `helpful' package if loaded."
   "Major mode for command log output buffers."
   :interactive nil)
 
+;;;###autoload
 (define-minor-mode command-log-mode
   "Toggle keyboard command logging."
   :init-value nil
   :lighter " command-log"
   :keymap nil
   (if command-log-mode
-      (add-hook 'pre-command-hook #'command-log--log-command 'default-depth 'buffer-local)
+      (add-hook 'pre-command-hook
+                #'command-log--log-command 'default-depth 'buffer-local)
     (remove-hook 'pre-command-hook #'command-log--log-command 'buffer-local)))
 
+;;;###autoload
 (define-globalized-minor-mode global-command-log-mode command-log-mode command-log-mode
   "Enables minor mode in all buffers, including minibuffer."
   :group 'command-log)
@@ -211,10 +215,11 @@ Use `helpful' package if loaded."
 
 The following variables are used to configure this toggle:
 
-`command-log-log-globally' controls the preference for `command-log-mode`
-minor mode or `global-command-log-mode.
-`command-log-open-log-turns-on-mode' will activate modes if showing the log buffer.
-`command-log-close-log-turns-off-mode' will clean up modes if killing the log buffer.
+`command-log-log-globally' controls the preference for
+`command-log-mode` minor mode or `global-command-log-mode.
+`command-log-open-log-turns-on-mode' will activate modes if
+showing the log buffer.  `command-log-close-log-turns-off-mode'
+will clean up modes if killing the log buffer.
 
 Passing a prefix CLEAR will clear the buffer before display."
   (interactive "P")
@@ -255,7 +260,8 @@ Prefix argument will KILL buffer."
   "Override `command-log-filter-commands' and show everything.
 ARG can be passed for direct setting."
   (interactive)
-  (setq command-log--show-all-commands (or arg (not command-log--show-all-commands)))
+  (setq command-log--show-all-commands
+        (or arg (not command-log--show-all-commands)))
   (when-let ((buffer (command-log--get-buffer)))
     (with-current-buffer buffer
       (message
@@ -290,9 +296,10 @@ END is ignored"
     (goto-char start)
     (let ((time (get-text-property (point) :time)))
       (if time
-          (list (cons start (if time
-                                (concat "[" (get-text-property (point) :time) "] ")
-                              "")))))))
+          (list (cons start
+                      (if time
+                          (concat "[" (get-text-property (point) :time) "] ")
+                        "")))))))
 
 (defun command-log--get-buffer ()
   "Just get the configured command log buffer."
@@ -326,7 +333,7 @@ CLEAR will clear the buffer if it exists before returning it."
        buffer `((dedicated . nil) (side . ,command-log-default-side))))))
 
 (defun command-log--setup-buffer (&optional clear)
-  "Setup (and create) the command-log-mode buffer.
+  "Setup (and create) the command-log buffer.
 CLEAR will clear the buffer if it exists before returning it."
   (let ((created (not (command-log--get-buffer)))
         (buffer (get-buffer-create command-log-buffer-name)))
@@ -428,7 +435,8 @@ EVENT is the last input event that triggered the command."
                (when (eq command-log--last-keyboard-command #'self-insert-command)
                  (delete-char -1)
                  (delete-region (line-beginning-position) (line-end-position)))
-               (setq command-log--recent-history-string (concat command-log--recent-history-string (kbd keys)))
+               (setq command-log--recent-history-string
+                     (concat command-log--recent-history-string (kbd keys)))
                (setq command-log--last-keyboard-command cmd)
                (setq command-log--last-command-keys keys)
                (insert (propertize
