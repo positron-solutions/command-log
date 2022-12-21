@@ -59,7 +59,7 @@
             ;; "--no-byte-compile"
             ;; "--no-checkdoc"
             ;; "--no-indent"
-            "--no-package-lint" ; this filter hates package initialisms
+            ;; "--no-package-lint"
             ;; "--no-fill-column"
             ;; "--no-check-declare"
             )
