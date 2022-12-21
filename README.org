@@ -1,10 +1,21 @@
+#+TITLE: Command Log
+
+#+HTML: <a href="https://melpa.org/#/command-log"><img src="https://melpa.org/packages/command-log-badge.svg" alt="melpa package"></a> <a href="https://stable.melpa.org/#/command-log"><img src="https://stable.melpa.org/packages/command-log-badge.svg" alt="melpa stable package"></a>
+#+HTML: <a href="https://github.com/positron-solutions/command-log/actions/?workflow=CI"><img src="https://github.com/positron-solutions/command-log/actions/workflows/ci.yml/badge.svg" alt="CI workflow status"></a>
+#+HTML: <a href="https://github.com/positron-solutions/command-log/actions/?workflow=Developer+Certificate+of+Origin"><img src="https://github.com/positron-solutions/command-log/actions/workflows/dco.yml/badge.svg" alt="DCO Check"></a>
+
 ** What it do?
 
-   Show event history and command history of some or all buffers.
+   Watch commands & key sequences in some or all buffers.  Good for recording
+   demos or annotating videos.
+
+   - Logs can be saved and contain command timestamps
+   - Filter commands or activate logging only in select buffers
+   - Side window buffer display
 
 ** What it look like?
 
-   [[https://github.com/positron-solutions/command-log-mode/raw/master/screenshot1.png]]
+   [[https://github.com/positron-solutions/command-log/raw/master/screenshot1.png]]
 
 ** Installation
 
@@ -14,43 +25,50 @@
   #+begin_src elisp
 
     ;; using straight use-package with custom recipe
-    (use-package command-log-mode
-      :straight '(command-log-mode
-                  :type git :host github :repo "positron-solutions/command-log-mode"))
+    (use-package command-log
+      :straight '(command-log
+                  :type git :host github :repo "positron-solutions/command-log"))
 
     ;; using elpaca (recommended to add a hash for reproducibility)
     (elpaca-use-package
-     (command-log-mode :host github
-                         :repo "positron-solutions/command-log-mode"))
+     (command-log :host github
+                  :repo "positron-solutions/command-log"))
 
   #+end_src
 
 ** How do I use it?
 
-   Use the =clm-toggle= command.  The use-package configuration below will
+   Use the =command-log-toggle= command.  The use-package configuration below will
    configure this command to log globally, including the mininbuffer, and to
    disable the global minor mode when you toggle while the buffer is visible.
    Customize the =command-log= group for more options.
 
    #+begin_src elisp
 
-     (use-package command-log-mode
+     (use-package command-log
         :custom
-        (clm-window-text-scale 2 "Command log two steps higher text scale")
-        (clm-logging-shows-buffer t "Toggling will show the buffer.")
-        (clm-hiding-disables-logging t "Toggling visible buffer turns off logging.")
-        (clm-disabling-logging-kills-buffer t "The buffer will be new when displayed again.")
-        (clm-log-globally t "Auto-enable with global minor mode (including minibuffer)")
-        (clm-exceptions '(self-insert-command) "Be chatty.
+        (command-log-window-text-scale 2 "Command log two steps higher text scale")
+        (command-log-logging-shows-buffer t "Toggling will show the buffer.")
+        (command-log-hiding-disables-logging t "Toggling visible buffer turns off logging.")
+        (command-log-disabling-logging-kills-buffer t "The buffer will be new when displayed again.")
+        (command-log-log-globally t "Auto-enable with global minor mode (including minibuffer)")
+        (command-log-filter-commands '(self-insert-command) "Be chatty.
         Show everything besides self-insert-command"))
 
    #+end_src
 
    You can reveal all commands by running [M-x]
-   =clm-toggle-show-all-commands=.
+   =command-log-toggle-show-all-commands=.
 
    Commands to toggle buffer showing and to turn everything off without doing it
    on every toggle are sorely needed.  PR's welcome!
+
+** See Also
+
+   The [[https://github.com/tarsius/keycast/tree/master][keycast]] package has options to display in a posframe, headline, or
+   modeline.  It's a pretty well written package.  This package was started to
+   clean up the command-log-mode package that is still ranking highly in a lot
+   of search results.
 
 ** License
 

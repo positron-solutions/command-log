@@ -102,8 +102,8 @@
   ;; Consume the command argument and run one of the routines
   (setq command (pop argv)) ; nil-safe
   (cond ((string= command "test")
-         (require 'command-log-mode)
-         (command-log-mode t))
+         (require 'command-log)
+         (global-command-log-mode t))
         ((string= command "lint") (run-shim-lint-package))
         t (print "Command not recognized.  Use test, lint etc.")))
 
