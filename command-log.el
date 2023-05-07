@@ -203,8 +203,8 @@ Use `helpful' package if loaded."
   :keymap nil
   (if command-log-mode
       (add-hook 'pre-command-hook
-                #'command-log--log-command 'default-depth 'buffer-local)
-    (remove-hook 'pre-command-hook #'command-log--log-command 'buffer-local)))
+                #'command-log--log-command 'default-depth)
+    (remove-hook 'pre-command-hook #'command-log--log-command)))
 
 ;;;###autoload
 (define-globalized-minor-mode global-command-log-mode command-log-mode command-log-mode
