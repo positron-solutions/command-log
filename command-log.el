@@ -183,10 +183,11 @@ Use `helpful' package if loaded."
     (describe-symbol (symbol-at-point))))
 
 (defvar command-log-output-mode-map
-  (let ((map (make-composed-keymap button-buffer-map special-mode-map)))
-    (define-key map [remap push-button] 'command-log--push-button)
+  (let ((map (make-sparse-keymap)))
+    (define-key map [remap push-button] #'command-log--push-button)
     (define-key map "g" nil)
     ;; TODO check the definition of bury & quit
+    (set-keymap-parent map (make-composed-keymap  button-buffer-map special-mode-map))
     map))
 
 (define-derived-mode command-log-output-mode fundamental-mode
