@@ -22,7 +22,7 @@ name: CI
 on: # trigger this workflow on
   push:
     branches: [ $default-branch ] # pushes to the default branch
-  pull_request:
+  pull_request_target:
     # or every pull request, from any branch to any branch
     paths-ignore:
       - 'README.org'
@@ -41,7 +41,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3.2.0
-      - uses: cachix/install-nix-action@v18
+      - uses: cachix/install-nix-action@v20
         with:
           extra_nix_config: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
