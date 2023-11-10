@@ -29,6 +29,9 @@
 
 ;;; Commentary:
 
+;; This package is an updated fork of `command-log-mode'.  Also see the
+;; `keycast' package.
+
 ;; This add-on can be used to demo Emacs to an audience.  When activated,
 ;; keystrokes get logged into a designated buffer, along with the command bound
 ;; to them.

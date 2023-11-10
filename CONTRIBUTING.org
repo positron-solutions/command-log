@@ -1,9 +1,8 @@
-#+TITLE: Conributing
+#+TITLE: Contributing
 #+AUTHOR: Psionik K
 
 If you want more Positron work, you can get involved by clicking on our funding
-links such as [[https://www.patreon.com/positron_solutions][Patreon]].  This is an active effort to deliver you a world of
-Emacs-centricity.
+links such as [[https://github.com/sponsors/positron-solutions][github sponsors]].
 
 PR's welcome.  Instructions follow.
 

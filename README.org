@@ -4,6 +4,11 @@
 #+HTML: <a href="https://github.com/positron-solutions/command-log/actions/?workflow=CI"><img src="https://github.com/positron-solutions/command-log/actions/workflows/ci.yml/badge.svg" alt="CI workflow status"></a>
 #+HTML: <a href="https://github.com/positron-solutions/command-log/actions/?workflow=Developer+Certificate+of+Origin"><img src="https://github.com/positron-solutions/command-log/actions/workflows/dco.yml/badge.svg" alt="DCO Check"></a>
 
+Please see the [[https://github.com/tarsius/keycast/tree/master][keycast]] package, which has options to display in a posframe,
+headline, or modeline.  It's a pretty well written package.  This package was
+started to clean up the [[https://github.com/lewang/command-log-mode][command-log-mode]] package that is still ranking highly in
+a lot of search results.
+
 ** What it do?
 
    Watch commands & key sequences in some or all buffers.  Good for recording
@@ -38,8 +43,8 @@
 
 ** How do I use it?
 
-   Use the =command-log-toggle= command.  The use-package configuration below will
-   configure this command to log globally, including the mininbuffer, and to
+   Use the ~command-log-toggle~ command.  The use-package configuration below will
+   configure this command to log globally, including the minibuffer, and to
    disable the global minor mode when you toggle while the buffer is visible.
    Customize the =command-log= group for more options.
 
@@ -62,13 +67,6 @@
 
    Commands to toggle buffer showing and to turn everything off without doing it
    on every toggle are sorely needed.  PR's welcome!
-
-** See Also
-
-   The [[https://github.com/tarsius/keycast/tree/master][keycast]] package has options to display in a posframe, headline, or
-   modeline.  It's a pretty well written package.  This package was started to
-   clean up the command-log-mode package that is still ranking highly in a lot
-   of search results.
 
 ** License
 
