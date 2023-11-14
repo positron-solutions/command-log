@@ -50,6 +50,7 @@
 
 ;;; Code:
 
+(require 'autorevert)
 (require 'cl-lib)
 (require 'comint)
 (require 'button)
@@ -475,6 +476,33 @@ EVENT is the last input event that triggered the command."
         (command-log--zap-recent-history cmd) ; could be inside condition expression
         (command-log--scroll-buffer-windows)))))
 
+(defvar-local command-log--dribble-file nil
+  "Clean up this dribble file.")
+
+(defun command-log--dribble-cleanup ()
+  "Delete `command-log--dribble-file'."
+  (when (file-exists-p command-log--dribble-file)
+    (delete-file command-log--dribble-file )))
+
+;;;###autoload
+(defun command-log-tail-dribble ()
+  "Open a dribble file and tail the contents."
+  (interactive)
+  (let* ((dribble-buffer "*Dribble*")
+         (buffer (get-buffer dribble-buffer)))
+    (if buffer
+        (kill-buffer buffer)
+      (with-current-buffer (get-buffer-create dribble-buffer)
+        (setq-local command-log--dribble-file
+                    (make-temp-file "dribble"))
+        (open-dribble-file command-log--dribble-file)
+        (insert-file-contents command-log--dribble-file 'visit)
+        (add-hook 'kill-buffer-hook #'command-log--dribble-cleanup
+                  nil 'local)
+        (auto-revert-tail-mode)
+        (setq-local auto-revert-verbose nil
+                    buffer-read-only t))
+      (switch-to-buffer-other-window dribble-buffer))))
 
 (defvar-local command-log--lossage-refresh-timer nil
   "Timer that refreshes the lossage buffer.")
