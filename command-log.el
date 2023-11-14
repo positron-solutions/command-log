@@ -64,19 +64,20 @@
   :prefix 'command-log
   :group 'convenience)
 
-(defcustom command-log-window-size 40
-  "The size of the command-log window."
-  :group 'command-log
-  :type 'integer)
-
 (defcustom command-log-default-side 'right
   "Which side for use in `display-buffer-in-side-window'."
   :group 'command-log
   :type 'symbol
   :options '(right left top bottom))
 
-(defcustom command-log-window-text-scale 0
-  "The text scale of the command-log window.
+(define-obsolete-variable-alias 'command-log-window-text-scale
+  'command-log-text-scale "0.2.0")
+
+(define-obsolete-variable-alias 'command-log-mode-window-font-size
+  'command-log-text-scale "0.2.0")
+
+(defcustom command-log-text-scale 0
+  "The text scale of the command-log output.
 +1,+2,... increase and -1,-2,... decrease the font size."
   :group 'command-log
   :type 'integer)
@@ -91,7 +92,7 @@
 
 (defcustom command-log-text-format "\"%s\""
   "How to display text.
-Only applies when `command-log-log-text' is non-nil."
+Only applies when `command-log-text' is non-nil."
   :group 'command-log
   :type 'string)
 
@@ -106,7 +107,7 @@ Only applies when `command-log-log-text' is non-nil."
   :group 'command-log)
 
 (defface command-log-command-face
-  '((t :inherit font-lock-doc-markup-face))
+  '((t :inherit font-lock-function-name-face))
   "Face for commands in command log."
   :group 'command-log)
 
@@ -120,39 +121,66 @@ Only applies when `command-log-log-text' is non-nil."
   "Face for text echo'ing in the command log."
   :group 'command-log)
 
+(define-obsolete-variable-alias 'clm/time-string
+  'command-log-time-string "0.2.0")
+
 (defcustom command-log-time-string "%Y-%m-%dT%H:%M:%S"
-  "The string sent to `format-time-string' when command time is logged."
+  "Sent to `format-time-string' if time logging enabled."
   :group 'command-log
   :type 'string)
 
-(defcustom command-log-logging-shows-buffer t
+
+(define-obsolete-variable-alias 'command-log-mode-auto-show
+  'command-log-enable-shows "0.2.0")
+
+(defcustom command-log-enable-shows t
   "Turning on logging shows the buffer if it's not visible."
   :group 'command-log
   :type 'boolean)
 
-(defcustom command-log-hiding-disables-logging t
+(define-obsolete-variable-alias 'command-log-hiding-disables-logging
+  'command-log-hide-disables "0.2.0")
+
+(defcustom command-log-hide-disables t
   "Hiding the buffer deactivates logging modes."
   :group 'command-log
   :type 'boolean)
 
-(defcustom command-log-disabling-logging-kills-buffer t
+(define-obsolete-variable-alias 'command-log-disabling-logging-kills-buffer
+  'command-log-disable-kills "0.2.0")
+
+(defcustom command-log-disable-kills t
   "Turning off all logging kills the buffer."
   :group 'command-log
   :type 'boolean)
 
-(defcustom command-log-log-globally t
-  "Does turning on `command-log-mode' happen globally?"
+(define-obsolete-variable-alias 'command-log-log-globally
+  'command-log-prefer-global "0.2.0")
+
+(defcustom command-log-prefer-global t
+  "When logging is enabled automatically, is it global?"
   :group 'command-log
   :type 'boolean)
 
-(defcustom command-log-filter-commands
+
+(define-obsolete-variable-alias 'clm/log-command-exceptions*
+  'command-log-ignored "0.2.0")
+
+(define-obsolete-variable-alias 'command-log-filter-commands
+  'command-log-ignored "0.2.0")
+
+(defcustom command-log-ignored
   '(self-insert-command
     handle-switch-frame)
-  "A list commands which should not be logged, despite logging being enabled.
-Frequently used non-interesting commands (like cursor movements)
-should be put here."
+  "A list commands which should be ignored.
+For `self-insert-command', logging text overrides this."
   :group 'command-log
   :type '(repeat (symbol :tag "command function name")))
+
+
+(define-obsolete-variable-alias 'command-log-log-text 'command-log-text "0.2.0")
+
+(define-obsolete-variable-alias 'clm/log-text 'command-log-text "0.2.0")
 
 (defcustom command-log-text nil
   "Log text as strings instead of `self-insert-commands'.
@@ -161,19 +189,30 @@ You may want to just except `self-insert-command' by adding it to
   :group 'command-log
   :type 'boolean)
 
-(defcustom command-log-log-mouse nil
+(define-obsolete-variable-alias 'command-log-log-mouse 'command-log-muose
+  "0.2.0")
+
+(defcustom command-log-mouse nil
   "Log mouse events.
 Toggling this is more conveneint than setting `command-log-ignored-commands'."
   :group 'command-log
   :type 'boolean)
+
+(define-obsolete-variable-alias 'clm/log-repeat 'command-log-merge-repeats
+  "0.2.0")
 
 (defcustom command-log-merge-repeats t
   "Merge repetitions of the same command."
   :group 'command-log
   :type 'boolean)
 
-(defcustom command-log-logging-dir (locate-user-emacs-file
-                                    "var/command-log-mode/")
+(define-obsolete-variable-alias 'command-log-logging-dir
+  'command-log-save-dir "0.2.0")
+
+(define-obsolete-variable-alias 'clm/logging-dir 'command-log-save-dir "0.2.0")
+
+(defcustom command-log-save-dir (locate-user-emacs-file
+                                 "var/command-log-mode/")
   "Directory in which to store files containing logged commands."
   :group 'command-log
   :type 'directory)
@@ -242,7 +281,7 @@ Use `helpful' package if loaded."
 
 The following variables are used to configure this toggle:
 
-`command-log-log-globally' controls the preference for
+`command-log-prefer-global' controls the preference for
 `command-log-mode` minor mode or `global-command-log-mode.
 `command-log-open-log-turns-on-mode' will activate modes if
 showing the log buffer.  `command-log-close-log-turns-off-mode'
@@ -254,27 +293,40 @@ Passing a prefix CLEAR will clear the buffer before display."
       (progn
         (command-log--hide-buffer)
         (when command-log-hiding-disables-logging
-          (if command-log-log-globally
+          (if command-log-prefer-global
               (global-command-log-mode nil)
             (command-log-mode nil))
           (when command-log-disabling-logging-kills-buffer
             (command-log--hide-buffer t))))
     (progn
-      (if command-log-log-globally
+      (if command-log-prefer-global
           (global-command-log-mode t)
         (command-log-mode t))
-      (when command-log-logging-shows-buffer
+      (when command-log-enable-shows
         (command-log--show-buffer clear)))))
 
+(declare-function 'clm/toggle-command-log-buffer "command-log-mode" ())
+(declare-function 'clm/open-command-log-buffer "command-log-mode" ())
+(define-obsolete-function-alias
+  'clm/toggle-command-log-buffer #'command-log-toggle "0.2.0")
+(define-obsolete-function-alias
+  'clm/open-command-log-buffer #'command-log-toggle "0.2.0")
+
 ;;;###autoload
-(defun command-log-close-command-log-buffer (&optional kill)
+(defun command-log-close-buffer (&optional kill)
   "Close the command log window.
 Prefix argument will KILL buffer."
   (interactive "P")
   (command-log--hide-buffer kill))
 
+(declare-function 'clm/close-command-log-buffer "command-log-mode" ())
+(define-obsolete-function-alias
+  'clm/close-command-log-buffer #'command-log-close-buffer "0.2.0")
+(define-obsolete-function-alias
+  'command-log-close-command-log-buffer #'command-log-close-buffer "0.2.0")
+
 ;;;###autoload
-(defun command-log-command-log-clear ()
+(defun command-log-clear ()
   "Clear the command log buffer."
   (interactive)
   (let ((buffer (command-log--get-buffer)))
@@ -282,8 +334,11 @@ Prefix argument will KILL buffer."
       (with-current-buffer buffer
         (erase-buffer)))))
 
+(declare-function 'clm/command-log-clear "command-log-mode" ())
+(define-obsolete-function-alias 'clm/command-log-clear #'command-log-clear "0.2.0")
+
 ;;;###autoload
-(defun command-log-toggle-show-all-commands (&optional arg)
+(defun command-log-toggle-show-all (&optional arg)
   "Override `command-log-filter-commands' and show everything.
 ARG can be passed for direct setting."
   (interactive)
@@ -296,15 +351,18 @@ ARG can be passed for direct setting."
         (format "Show all commands: %s" command-log--show-all-commands)
         'face 'success)))))
 
+(define-obsolete-function-alias
+  'command-log-toggle-show-all-commands #'command-log-toggle-show-all "0.2.0")
+
 ;;;###autoload
-(defun command-log-save-command-log ()
+(defun command-log-save ()
   "Save commands to today's log.
 Clears the command log buffer after saving."
   (interactive)
   (let ((buffer (command-log--get-buffer)))
     (when buffer
       (with-current-buffer buffer
-        (make-directory command-log-logging-dir :parents)
+        (make-directory command-log-save-dir :parents)
         (goto-char (point-min))
         (let ((now (format-time-string "%Y-%02m-%02d %02H:%02M:%02S"))
               (write-region-annotate-functions '(command-log--line-time)))
@@ -312,9 +370,14 @@ Clears the command log buffer after saving."
                       (not (eobp)))
             (append-to-file (line-beginning-position)
                             (1+ (line-end-position))
-                            (concat command-log-logging-dir now))))
+                            (concat command-log-save-dir now))))
         (when (y-or-n-p "Erase buffer?")
           (erase-buffer))))))
+
+(declare-function 'clm/save-command-log "command-log-mode" ())
+(define-obsolete-function-alias
+  'command-log-save-command-log #'command-log-save "0.2.0")
+(define-obsolete-function-alias 'clm/save-command-log #'command-log-save "0.2.0")
 
 (defun command-log--line-time (start _end)
   "Return time at START as [timestamp].
@@ -406,11 +469,11 @@ EVENT is the last input event that triggered the command."
                            (buffer-local-value 'major-mode (current-buffer)))))
     (or command-log--show-all-commands
         (and (not in-log-buffer)
-             (or (if command-log-log-mouse
+             (or (if command-log-mouse
                      (not filtered)
                    (and (not mouse)
                         (not filtered)))
-                 (and command-log-log-text text))))))
+                 (and command-log-text text))))))
 
 (defun command-log--scroll-buffer-windows ()
   "Move `point' to end of windows containing log buffer."
