@@ -473,5 +473,33 @@ EVENT is the last input event that triggered the command."
         (command-log--zap-recent-history cmd) ; could be inside condition expression
         (command-log--scroll-buffer-windows)))))
 
+
+(defvar-local command-log--lossage-refresh-timer nil
+  "Timer that refreshes the lossage buffer.")
+
+(defun command-log--lossage-cleanup ()
+  "Cancel the lossage refresh timer."
+  (cancel-timer command-log--lossage-refresh-timer))
+
+;;;###autoload
+(defun command-log-tail-lossage ()
+  "Lossage with automatic refreshing."
+  (interactive)
+  (view-lossage)
+  (when-let* ((help-buffer (get-buffer "*Help*")))
+    (with-current-buffer help-buffer
+      ;; set up automatic updating unless it's already running.
+      (unless (buffer-local-value
+               'command-log--lossage-refresh-timer
+               help-buffer)
+        (let ((timer (timer-create)))
+          (timer-set-function timer #'command-log--refresh-lossage
+                              (list help-buffer))
+          (timer-set-time timer (current-time) 1.0)
+          (timer-activate timer)
+          (setq-local command-log--lossage-refresh-timer timer)
+          (add-hook 'kill-buffer-hook #'command-log--lossage-cleanup
+                    nil 'local))))))
+
 (provide 'command-log)
 ;;; command-log.el ends here
