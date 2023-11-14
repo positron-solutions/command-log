@@ -83,8 +83,12 @@
 
 (defcustom command-log-log-command-indentation 11
   "Indentation of commands in command log buffer."
+
+(defcustom command-log-repeat-format " #%s"
+  "How to display repeats."
   :group 'command-log
-  :type 'integer)
+  :type 'string)
+
 (defcustom command-log-text-format "\"%s\""
   "How to display text.
 Only applies when `command-log-log-text' is non-nil."
@@ -107,7 +111,7 @@ Only applies when `command-log-log-text' is non-nil."
   :group 'command-log)
 
 (defface command-log-repeat-face
-  '((t :inherit 'font-lock-doc-face))
+  '((t :inherit 'shadow))
   "Face for commands in command log."
   :group 'command-log)
 
@@ -449,9 +453,9 @@ EVENT is the last input event that triggered the command."
                             (search-backward "[" (line-beginning-position -1) t))
                    (delete-region (point) (line-end-position))))
                (backward-char) ; skip over either ?\newline or ?\space before ?\[
-               (insert (propertize (concat " ["
-                                           (number-to-string (1+ command-log--command-repetitions))
-                                           " times]")
+               (insert (propertize (format command-log-repeat-format
+                                           (number-to-string
+                                            (1+ command-log--command-repetitions)))
                                    'face 'command-log-repeat-face)))
               ((and (and command-log-log-text (not command-log--show-all-commands))
                     (eq cmd #'self-insert-command))
