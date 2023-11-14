@@ -85,6 +85,16 @@
   "Indentation of commands in command log buffer."
   :group 'command-log
   :type 'integer)
+(defcustom command-log-text-format "\"%s\""
+  "How to display text.
+Only applies when `command-log-log-text' is non-nil."
+  :group 'command-log
+  :type 'string)
+
+(defcustom command-log-text-space "␣"
+  "How to draw spaces in text."
+  :group 'command-log
+  :type 'string)
 
 (defface command-log-key-face
   '((t :inherit 'font-lock-keyword-face))
@@ -99,6 +109,11 @@
 (defface command-log-repeat-face
   '((t :inherit 'font-lock-doc-face))
   "Face for commands in command log."
+  :group 'command-log)
+
+(defface command-log-text-face
+  '((t :inherit 'font-lock-string-face))
+  "Face for text echo'ing in the command log."
   :group 'command-log)
 
 (defcustom command-log-time-string "%Y-%m-%dT%H:%M:%S"
@@ -135,7 +150,7 @@ should be put here."
   :group 'command-log
   :type '(repeat (symbol :tag "command function name")))
 
-(defcustom command-log-log-text nil
+(defcustom command-log-text nil
   "Log text as strings instead of `self-insert-commands'.
 You may want to just except `self-insert-command' by adding it to
 `command-log-filter-commands'."
@@ -448,8 +463,12 @@ EVENT is the last input event that triggered the command."
                (setq command-log--last-keyboard-command cmd)
                (setq command-log--last-command-keys keys)
                (insert (propertize
-                        (concat "[text: " command-log--recent-history-string "]\n")
-                        'face 'command-log-repeat-face)))
+                        (format
+                         command-log-text-format
+                         (string-replace " " command-log-text-space
+                                         command-log--recent-history-string))
+                        'face 'command-log-text-face))
+               (insert "\n"))
               (t
                (setq command-log--command-repetitions 0)
                (insert
