@@ -1,18 +1,20 @@
 ;;; command-log.el --- Log user inputs & commands -*- lexical-binding: t -*-
 
-;; homepage: https://github.com/positron-solutons/command-log
-
-;; Copyright (C) 2022 Positron Solutions
+;; Copyright (C) 2022-2023 Positron Solutions
 ;; Copyright (C) 2013 Nic Ferrier
 ;; Copyright (C) 2012 Le Wang
 ;; Copyright (C) 2004 Free Software Foundation, Inc.
 
-;; Author: Michael Weber <michaelw@foldr.org>
-;; Keywords: help docs
-;; Version: 0.1.0
+;; Author: Michael Weber <xmichaelw@foldr.org>
+;; Maintainer: Positron Solutions <contact@positron.solutions>
+;; Keywords: help, docs
+;; Version: 0.2.0
 ;; Package-Requires: ((emacs "28.0"))
+;; homepage: https://github.com/positron-solutons/command-log
 ;; Initial-version: <2004-10-07 11:41:28 michaelw>
 ;; Time-stamp: <2004-11-06 17:08:11 michaelw>
+
+;; This file is not part of GNU Emacs.
 
 ;; This program is free software: you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free Software
@@ -30,7 +32,7 @@
 ;;; Commentary:
 
 ;; This package is an updated fork of `command-log-mode'.  Also see the
-;; `keycast' package.
+;; `keycast' and `keypression' packages.
 
 ;; This add-on can be used to demo Emacs to an audience.  When activated,
 ;; keystrokes get logged into a designated buffer, along with the command bound
