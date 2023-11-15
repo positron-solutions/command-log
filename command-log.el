@@ -754,7 +754,8 @@ hook."
       ;; here."
       (when (> (count-lines (point-min) (point-max)) comint-max-line-length)
         (goto-char (point-min))
-        (delete-line))
+        ;; TODO linter said this was Emacs 29 lol.
+        (delete-region (pos-bol) (pos-bol 2)))
       ;; TODO this probably is not the best way to autoscroll
       (command-log--scroll-buffer-windows))))
 
