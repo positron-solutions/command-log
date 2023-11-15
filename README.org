@@ -4,10 +4,10 @@
 #+HTML: <a href="https://github.com/positron-solutions/command-log/actions/?workflow=CI"><img src="https://github.com/positron-solutions/command-log/actions/workflows/ci.yml/badge.svg" alt="CI workflow status"></a>
 #+HTML: <a href="https://github.com/positron-solutions/command-log/actions/?workflow=Developer+Certificate+of+Origin"><img src="https://github.com/positron-solutions/command-log/actions/workflows/dco.yml/badge.svg" alt="DCO Check"></a>
 
-Please see the [[https://github.com/tarsius/keycast/tree/master][keycast]] package, which has options to display in a posframe,
-headline, or modeline.  It's a pretty well written package.  This package was
-started to clean up the [[https://github.com/lewang/command-log-mode][command-log-mode]] package that is still ranking highly in
-a lot of search results.
+Please see the [[https://github.com/tarsius/keycast/tree/master][keycast]] and [[https://github.com/chuntaro/emacs-keypression][keypression]] package, which has options to display in
+a posframe, headline, or modeline.  It's a pretty well written package.  This
+package was forked to clean up the [[https://github.com/lewang/command-log-mode][command-log-mode]] package that is still
+ranking highly in a lot of search results.
 
 ** What it do?
 
@@ -63,7 +63,7 @@ a lot of search results.
    #+end_src
 
    You can reveal all commands by running [M-x]
-   =command-log-toggle-show-all-commands=.
+   ~command-log-toggle-show-all~.
 
    Commands to toggle buffer showing and to turn everything off without doing it
    on every toggle are sorely needed.  PR's welcome!
@@ -71,7 +71,7 @@ a lot of search results.
 ** License
 
    All post-fork work is GPL licensed.  This increasingly covers most of the
-   package.  The CI is MIT licensed for ease of use.  See [[./CONTRIBUTING.org][CONTRIBUTING.org]] for
+   package.  The CI is MIT licensed for convenience.  See [[./CONTRIBUTING.org][CONTRIBUTING.org]] for
    information about submitting changes correctly.
 
    This package is a fork of [[http://www.foldr.org/~michaelw/emacs/mwe-log-commands.el][mwe-log-commands.el]] by Michael Weber
