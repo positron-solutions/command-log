@@ -646,9 +646,6 @@ hook."
 (defun command-log--log-post-command ()
   "Write the command information to the output."
   (let ((deactivate-mark nil) ; do not deactivate mark in transient mark mode
-        ;; Don't let random commands change `this-command' Emacs global
-        ;; variables by creating local lexical variables with their values.
-        (this-command this-command)
         (buffer (command-log--get-buffer))
         (pre-cmd command-log--pre-command)
         (post-cmd (symbol-value command-log-post-command-target))
@@ -788,33 +785,6 @@ hook."
         (setq-local auto-revert-verbose nil
                     buffer-read-only t))
       (switch-to-buffer-other-window dribble-buffer))))
-
-(defvar-local command-log--lossage-refresh-timer nil
-  "Timer that refreshes the lossage buffer.")
-
-(defun command-log--lossage-cleanup ()
-  "Cancel the lossage refresh timer."
-  (cancel-timer command-log--lossage-refresh-timer))
-
-;;;###autoload
-(defun command-log-tail-lossage ()
-  "Lossage with automatic refreshing."
-  (interactive)
-  (view-lossage)
-  (when-let* ((help-buffer (get-buffer "*Help*")))
-    (with-current-buffer help-buffer
-      ;; set up automatic updating unless it's already running.
-      (unless (buffer-local-value
-               'command-log--lossage-refresh-timer
-               help-buffer)
-        (let ((timer (timer-create)))
-          (timer-set-function timer #'command-log--refresh-lossage
-                              (list help-buffer))
-          (timer-set-time timer (current-time) 1.0)
-          (timer-activate timer)
-          (setq-local command-log--lossage-refresh-timer timer)
-          (add-hook 'kill-buffer-hook #'command-log--lossage-cleanup
-                    nil 'local))))))
 
 (provide 'command-log)
 ;;; command-log.el ends here
