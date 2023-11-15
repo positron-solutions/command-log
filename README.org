@@ -28,17 +28,16 @@ ranking highly in a lot of search results.
    should support pointing at specific repositories) to use this repo.
 
   #+begin_src elisp
+    ;; using elpaca (recommended to add a hash for reproducibility)
+    (use-package
+      :elpaca (command-log
+               :host github
+               :repo "positron-solutions/command-log"))
 
     ;; using straight use-package with custom recipe
     (use-package command-log
       :straight '(command-log
                   :type git :host github :repo "positron-solutions/command-log"))
-
-    ;; using elpaca (recommended to add a hash for reproducibility)
-    (elpaca-use-package
-     (command-log :host github
-                  :repo "positron-solutions/command-log"))
-
   #+end_src
 
 ** How do I use it?
