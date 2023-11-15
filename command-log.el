@@ -82,9 +82,6 @@
   :group 'command-log
   :type 'integer)
 
-(defcustom command-log-log-command-indentation 11
-  "Indentation of commands in command log buffer."
-
 (defcustom command-log-repeat-format " #%s"
   "How to display repeats."
   :group 'command-log
@@ -445,12 +442,6 @@ KILL will kill the buffer after deleting its window."
       (when kill
         (kill-buffer buffer)))))
 
-(defun command-log--push-history ()
-  "Push the character entered into the buffer into the recent history."
-  (setq command-log--recent-history-string
-        (concat command-log--recent-history-string
-                (key-description (this-command-keys)))))
-
 (defun command-log--mouse-event-p (event)
   "Return t if EVENT is mouse event.
 Emacs `mouse-event-p' reports nil for movement."
@@ -543,16 +534,6 @@ EVENT is the last input event that triggered the command."
                  keys
                  :time  (format-time-string command-log-time-string (current-time))
                  'face 'command-log-key-face))
-               (when (>= (current-column) command-log-log-command-indentation)
-                 (newline))
-               (move-to-column command-log-log-command-indentation t)
-               (insert
-                (if (byte-code-function-p cmd)
-                    (propertize "<bytecode>" 'face 'command-log-command-face)
-                  (propertize (symbol-name cmd)
-                              'face 'command-log-command-face
-                              'button '(t)
-                              'category 'default-button)))
                (newline)
                (setq command-log--last-command-keys keys)
                (setq command-log--last-keyboard-command cmd)))
