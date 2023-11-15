@@ -48,21 +48,27 @@ ranking highly in a lot of search results.
    Customize the =command-log= group for more options.
 
    #+begin_src elisp
-
      (use-package command-log
-        :custom
-        (command-log-window-text-scale 2 "Command log two steps higher text scale")
-        (command-log-logging-shows-buffer t "Toggling will show the buffer.")
-        (command-log-hiding-disables-logging t "Toggling visible buffer turns off logging.")
-        (command-log-disabling-logging-kills-buffer t "The buffer will be new when displayed again.")
-        (command-log-log-globally t "Auto-enable with global minor mode (including minibuffer)")
-        (command-log-filter-commands '(self-insert-command) "Be chatty.
-        Show everything besides self-insert-command"))
+       :config
+       (setopt command-log-filter-commands '(self-insert-command) ; commands you don't care about
+       (setopt command-log-mouse t)
+       (setopt command-log-text t) ; print strings rather than streams of `self-insert-command'.
 
+       (setopt command-log-merge-repeats t) ; show repeat counts without making new entries
+       ;; This following option and some related options can be powerful for
+       ;; revealing how commands are delegating out to other commands, such as M-x
+       ;; and ivy.  Read the docs ;-)
+       (setopt command-log-merge-repeat-targets 'post-command)
    #+end_src
 
-   You can reveal all commands by running [M-x]
-   ~command-log-toggle-show-all~.
+*** Unveiling More Details
+
+   You can reveal all commands temporarily by running [M-x]
+   ~command-log-toggle-show-all~.  It overrides several behaviors to try to reveal
+   more.
+
+   There is also ~command-log-tail-dribble~ if you need to see your inputs for
+   debugging.  Don't forget about simple ~view-lossage~ and refreshing with =g=.
 
    Commands to toggle buffer showing and to turn everything off without doing it
    on every toggle are sorely needed.  PR's welcome!
