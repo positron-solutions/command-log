@@ -87,6 +87,13 @@
   :group 'command-log
   :type 'string)
 
+(defcustom command-log-keys-min-width 8
+  "How wide to make keys.
+One way to help indentation.  Default will align up to two chords
+with a trailing space."
+  :group 'command-log
+  :type 'integer)
+
 (defcustom command-log-text-format "\"%s\""
   "How to display text.
 Only applies when `command-log-text' is non-nil."
@@ -203,6 +210,115 @@ Toggling this is more conveneint than setting `command-log-ignored-commands'."
   :group 'command-log
   :type 'boolean)
 
+(defcustom command-log-pre-command-target 'this-command
+  "Symbol to report during the pre-command.
+When non-nil, the symbol will be read during the
+`pre-command-hook'.  Normally we are interested in
+`this-command', but special debugging circumstances may be
+interested in `last-repeatable-command' or `this-real-command'
+etc.  Any Lisp variable that is always bound will work, but could
+break features such as text logging, which watch for
+`self-insert-command' in the post-command.
+
+Experience shows that many commands which delegate out to other
+commands, such `ivy-done' or lispy commands, will have the effect
+of resetting `this-command' and `this-real-command' both between
+the pre & post command hook.  In the pre-command hook we see the
+command that was called, but for commands such as \`M-x', it' is
+potentially not interesting to see the pre-command `this-command'
+value, such as `ivy-done', the result of pressing \`RET' in an
+\`M-x' menu.
+
+The following is a log output of all likely events you will want
+to log during the pre and post command:
+
+;; pre-command-hook:
+;;    this-command: ivy-done
+;;    real-this-command: ivy-done
+;;    real-last-command: self-insert-command
+;;    last-repeatable-command: self-insert-command
+;;
+;; post-command-hook:
+;;   this-command: next-line
+;;   real-this-command: next-line
+;;   real-last-command: self-insert-command
+;;   last-repeatable-command: self-insert-command
+
+Note: `self-insert-command' was the actual command that preceded
+pressing \`RET' to cause an `ivy-done' command.
+`real-last-command' is not terribly interesting.  It does not
+change between the pre & post command hooks in any observed
+cases.
+
+However, also note that `real-this-command' was modified between
+pre & post-command hooks.  This contradicts the semantic meaning
+and docstring of `real-this-command'.  Practically, we don't care
+because we caught the change via the `pre-command-hook' rather
+than blindly trusting the words of the `real-last-command'
+docstring author.  We obtain a useful result, and that is what
+matters.
+
+\`M-x' is known to not update `this-command' in the case of
+counsel's \`M-x' command.
+
+When developing a package, you may be very interested in
+different values pre and post command.  It is very easy to modify
+the point that values are recorded to fit your use case.  See the
+body of `command-log--log-pre-command' and
+`command-log--log-post-command' and submit a patch if you find a
+use case for making these support function calls for example.
+
+See `command-log-merge-targets' information about output
+formatting."
+  :group 'command-log
+  :type 'symbol)
+
+(defcustom command-log-post-command-target 'this-command
+  "Symbol to report during the post-command.
+When non-nil, the symbol will be read during the
+`post-command-hook'.  Normally we are interested in
+`this-command', but special debugging circumstances may be
+interested in `last-repeatable-command' or `this-real-command'
+etc.  Any Lisp variable that is always bound will work.
+
+See `command-log-pre-command-target' for more information."
+  :group 'command-log
+  :type 'symbol)
+
+(defcustom command-log-merge-repeat-targets 'post-command
+  "Controls merging behavior when targets match or not.
+We can prefer the `'pre-command' or the `'post-command'.  Setting
+to `'nil' or `'both' will not merge the values at all.  The
+pre-command will be first in the output.
+
+When `command-log-pre-command-target' and
+`command-log--log-post-command' target are the same or different,
+how should we behave?  Since the user did not press additional
+keys, there are no inputs, we will only display keys once.  The
+same is true for repeats, but the repeat counter will only count
+a repeat if everything matches.  Since the pre-command comes
+before the post-command, we always show the pre-command before
+the post command when both are shown.
+
+See `command-log-post-excepting-pre-commands' for information
+about commands that will override the setting of `'post-command'."
+  :group 'command-log
+  :type 'symbol
+  :options '(pre-command post-command both))
+
+(defcustom command-log-post-excepting-pre-commands
+  `(counsel-M-x
+    execute-extended-command
+    ,(command-remapping 'execute-extended-command)) ; whatever the user's remap is
+  "A list of commands that do not update `this-command'.
+We decline to print the post-command value when the pre-command
+value of `this-command' is a member of this list.  It's tricky.
+There isn't a great way to detect this.  The only known use is
+however terribly common, `execute-extended-command' and it's
+re-mappings."
+  :group 'command-log
+  :type '(repeat symbol))
+
 (define-obsolete-variable-alias 'command-log-logging-dir
   'command-log-save-dir "0.2.0")
 
@@ -222,17 +338,41 @@ Toggling this is more conveneint than setting `command-log-ignored-commands'."
 (defvar command-log--command-repetitions 0
   "Count of how often the last keyboard commands has been repeated.")
 
-(defvar command-log--last-keyboard-command nil
-  "Last logged keyboard command.")
+(defvar command-log--pre-command nil
+  "Command after remapping.")
+
+(defvar command-log--pre-command-keys nil
+  "Command keys after remapping.")
+
+(defvar command-log--last-pre-command nil
+  "Last logged pre command.")
+
+(defvar command-log--last-post-command nil
+  "Last logged post command.")
 
 (defvar command-log--last-command-keys nil
   "Last key description for `this-command-keys'.")
 
-(defvar command-log--recent-history-string ""
+(defvar command-log--repeat-start-marker nil
+  "Marker for updating the repeat counter.")
+
+(defvar command-log--repeat-end-marker nil
+  "Marker for updating the repeat counter.")
+
+(defvar command-log--self-insert-start nil
+  "Marker for updating sequences of `self-insert-command'.")
+
+(defvar command-log--self-insert-end nil
+  "Marker for updating sequences of `self-insert-command'.")
+
+(defvar command-log--self-insert-string ""
   "This string will hold recently typed text.")
 
 (defvar command-log--show-all-commands nil
   "Override `command-log-filter-commands' and show all commands instead.")
+
+(defvar command-log--last-log-marker nil
+  "Saving our location so we can update repeat commands.")
 
 (declare-function helpful-at-point "helpful" ())
 (defun command-log--push-button ()
@@ -262,10 +402,14 @@ Use `helpful' package if loaded."
   :init-value nil
   :lighter " command-log"
   :keymap nil
-  (if command-log-mode
-      (add-hook 'pre-command-hook
-                #'command-log--log-command 'default-depth)
-    (remove-hook 'pre-command-hook #'command-log--log-command)))
+  (cond (command-log-mode
+         (add-hook 'pre-command-hook
+                   #'command-log--log-pre-command 'default-depth)
+         (add-hook 'post-command-hook
+                   #'command-log--log-post-command 'default-depth))
+        (t
+         (remove-hook 'pre-command-hook #'command-log--log-pre-command)
+         (remove-hook 'post-command-hook #'command-log--log-post-command))))
 
 ;;;###autoload
 (define-globalized-minor-mode global-command-log-mode command-log-mode command-log-mode
@@ -480,16 +624,34 @@ EVENT is the last input event that triggered the command."
   (when (or command-log--show-all-commands
             (not (member cmd command-log-filter-commands))
             (not (eq cmd #'self-insert-command)))
-    (setq command-log--recent-history-string "")))
+    (setq command-log--self-insert-string "")))
 
-(defun command-log--log-command (&optional cmd)
-  "Log CMD to the command-log--buffer."
+(defun command-log--format-command (cmd)
+  "Make CMD human pretty and clickable."
+  (if (byte-code-function-p cmd)
+      (propertize "<bytecode>" 'face 'command-log-command-face)
+    (propertize (symbol-name cmd)
+                'face 'command-log-command-face
+                'button '(t)
+                'category 'default-button)))
+
+(defun command-log--log-pre-command ()
+  "Record the pre-command state.
+This enables us to differentiate commands that delegate out to other commands by
+reading before the command and comparing the state during the post command
+hook."
+  (setq command-log--pre-command-keys (key-description (this-command-keys)))
+  (setq command-log--pre-command (symbol-value command-log-pre-command-target)))
+
+(defun command-log--log-post-command ()
+  "Write the command information to the output."
   (let ((deactivate-mark nil) ; do not deactivate mark in transient mark mode
         ;; Don't let random commands change `this-command' Emacs global
         ;; variables by creating local lexical variables with their values.
         (this-command this-command)
         (buffer (command-log--get-buffer))
-        (cmd (or cmd this-command))
+        (pre-cmd command-log--pre-command)
+        (post-cmd (symbol-value command-log-post-command-target))
         (event last-command-event)
         (keys (key-description (this-command-keys))))
     (when (and buffer (command-log--should-log-command-p cmd event))
