@@ -653,57 +653,113 @@ hook."
         (pre-cmd command-log--pre-command)
         (post-cmd (symbol-value command-log-post-command-target))
         (event last-command-event)
-        (keys (key-description (this-command-keys))))
-    (when (and buffer (command-log--should-log-command-p cmd event))
+        (keys command-log--pre-command-keys))
+    ;; During updates, use `real-this-command' for logic in case the user
+    ;; has selected some random value for the targets.
+    (when (and buffer (command-log--should-log-command-p real-this-command event))
       (with-current-buffer buffer
         (goto-char (point-max))
         (cond ((and command-log-merge-repeats
-                    (not (and command-log-log-text
-                              (eq cmd #'self-insert-command)
+                    (not (and command-log-text
+                              (eq post-cmd #'self-insert-command)
                               (not command-log--show-all-commands)))
-                    (and (eq cmd command-log--last-keyboard-command)
+                    ;; must completely match
+                    (and (eq pre-cmd command-log--last-pre-command)
+                         (eq post-cmd command-log--last-post-command)
                          (string= keys command-log--last-command-keys)))
+               ;; Either set up repeat or delete marked region of old repeat and
+               ;; re-insert between markers.
                (cl-incf command-log--command-repetitions)
-               (save-match-data
-                 (when (and (> command-log--command-repetitions 1)
-                            (search-backward "[" (line-beginning-position -1) t))
-                   (delete-region (point) (line-end-position))))
-               (backward-char) ; skip over either ?\newline or ?\space before ?\[
+               (if (> command-log--command-repetitions 1)
+                   (progn (delete-region command-log--repeat-start-marker
+                                         command-log--repeat-end-marker)
+                          (goto-char command-log--repeat-start-marker))
+                 (backward-char)
+                 (setq command-log--repeat-start-marker (point-marker)
+                       command-log--repeat-end-marker (point-marker))
+                 (set-marker-insertion-type command-log--repeat-end-marker t))
                (insert (propertize (format command-log-repeat-format
-                                           (number-to-string
-                                            (1+ command-log--command-repetitions)))
+                                           (1+ command-log--command-repetitions))
                                    'face 'command-log-repeat-face)))
-              ((and (and command-log-log-text (not command-log--show-all-commands))
-                    (eq cmd #'self-insert-command))
-               (when (eq command-log--last-keyboard-command #'self-insert-command)
-                 (delete-char -1)
-                 (delete-region (line-beginning-position) (line-end-position)))
-               (setq command-log--recent-history-string
-                     (concat command-log--recent-history-string (kbd keys)))
-               (setq command-log--last-keyboard-command cmd)
-               (setq command-log--last-command-keys keys)
+
+              ((and (and command-log-text (not command-log--show-all-commands))
+                    (eq post-cmd #'self-insert-command))
+               ;; TODO the only reason we can't log text and all commands
+               ;; simultaneously is because of this condition statement.
+
+               ;; Either set up string or delete marked region of old string and
+               ;; re-insert between markers.
+               (if (eq command-log--last-post-command #'self-insert-command)
+                   (progn (delete-region command-log--self-insert-start
+                                         command-log--self-insert-end)
+                          (goto-char command-log--self-insert-start))
+                 (setq command-log--self-insert-start (point-marker)
+                       command-log--self-insert-end (point-marker))
+                 (set-marker-insertion-type command-log--self-insert-end t))
+               (setq command-log--self-insert-string
+                     (concat command-log--self-insert-string (kbd keys)))
                (insert (propertize
                         (format
                          command-log-text-format
                          (string-replace " " command-log-text-space
-                                         command-log--recent-history-string))
+                                         command-log--self-insert-string))
                         'face 'command-log-text-face))
-               (insert "\n"))
+               (newline))
+
               (t
-               (setq command-log--command-repetitions 0)
                (insert
                 (propertize
                  keys
                  :time  (format-time-string command-log-time-string (current-time))
                  'face 'command-log-key-face))
+
+               (when (< (length keys) command-log-keys-min-width)
+                 (insert (make-string (- command-log-keys-min-width
+                                         (length keys))
+                                      32)))
+               (when (>= (length keys) command-log-keys-min-width)
+                 (insert 32))
+
+               (if (and (not (eq pre-cmd post-cmd))
+                        (not (member
+                              pre-cmd
+                              command-log-post-excepting-pre-commands))
+                        (eq command-log-merge-repeat-targets 'post-command))
+                   (insert (command-log--format-command post-cmd))
+                 (insert (command-log--format-command pre-cmd)))
                (newline)
-               (setq command-log--last-command-keys keys)
-               (setq command-log--last-keyboard-command cmd)))
-        (when (> (count-lines (point-min) (point-max)) comint-max-line-length)
-          (goto-char (point-min))
-          (delete-line))
-        (command-log--zap-recent-history cmd) ; could be inside condition expression
-        (command-log--scroll-buffer-windows)))))
+               (when (and (not (eq pre-cmd post-cmd))
+                          (not (member
+                                pre-cmd
+                                command-log-post-excepting-pre-commands))
+                          (not (member command-log-merge-repeat-targets
+                                       '(pre-command post-command))))
+                 (insert (make-string command-log-keys-min-width 32))
+                 (insert (command-log--format-command post-cmd))
+                 (newline))
+
+               ;; non-string command.  unset string tracking.
+               (setq command-log--self-insert-end nil
+                     command-log--self-insert-start nil
+                     command-log--self-insert-string nil)
+               ;; non-repeat command.  unset repetition tracking.
+               (setq command-log--command-repetitions 0
+                     command-log--repeat-start-marker nil
+                     command-log--repeat-end-marker nil)))
+
+        (setq command-log--last-post-command post-cmd
+              command-log--last-pre-command pre-cmd
+              command-log--last-command-keys keys))
+
+      ;; TODO uhmmmm isnt' there a better way to do this?  Aight, we're using a
+      ;; variable, `comint-max-line-length', that is "only meaningful when
+      ;; communicating with sub-processes via PTY's." Let's do something better
+      ;; here."
+      (when (> (count-lines (point-min) (point-max)) comint-max-line-length)
+        (goto-char (point-min))
+        (delete-line))
+      ;; TODO this probably is not the best way to autoscroll
+      (command-log--scroll-buffer-windows))))
 
 (defvar-local command-log--dribble-file nil
   "Clean up this dribble file.")
