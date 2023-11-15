@@ -21,7 +21,7 @@
   description = "This flake provides CI & local development dependencies";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs?ref=release-22.11";
+    nixpkgs.url = "github:nixos/nixpkgs?ref=release-23.05";
     flake-utils.url = "github:numtide/flake-utils";
     emacs-overlay = {
       url = "github:nix-community/emacs-overlay";
@@ -42,7 +42,7 @@
 
         emacsPackages = [
           "emacs"
-          "emacsGit" # to see changes in upstreams
+          "emacs29" # to see changes in upstreams
         ];
 
         devShells = pkgs.lib.genAttrs emacsPackages (emacsPkg:

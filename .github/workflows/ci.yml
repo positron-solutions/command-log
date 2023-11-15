@@ -36,7 +36,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        emacsPkg: [ emacs, emacsGit ]
+        emacsPkg: [ emacs, emacs29 ]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -58,10 +58,10 @@ jobs:
       # Linting the package is less useful on multiple version.  Modify the
       # logic if you wish to expand lint coverage.
       - name: lint package
-        if: matrix.emacsPkg == 'emacs'
+        if: matrix.emacsPkg == 'emacs29'
         run: |
           eval "$(nix print-dev-env \
-          --override-input nixpkgs github:nixos/nixpkgs/release-22.11 \
+          --override-input nixpkgs github:nixos/nixpkgs/release-23.05 \
           --update-input emacs-overlay \
           .github#${{ matrix.emacsPkg }})"
 
@@ -71,7 +71,7 @@ jobs:
       - name: load package
         run: |
           eval "$(nix print-dev-env \
-          --override-input nixpkgs github:nixos/nixpkgs/release-22.11 \
+          --override-input nixpkgs github:nixos/nixpkgs/release-23.05 \
           --update-input emacs-overlay \
           .github#${{ matrix.emacsPkg }})"
 
