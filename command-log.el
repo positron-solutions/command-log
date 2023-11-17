@@ -699,14 +699,17 @@ hook."
                  (set-marker-insertion-type command-log--self-insert-end t))
                (setq command-log--self-insert-string
                      (concat command-log--self-insert-string (kbd keys)))
-               (insert (propertize
-                        (format
-                         command-log-text-format
-                         (string-replace " " command-log-text-space
-                                         command-log--self-insert-string))
-                        'face 'command-log-text-face))
+               (insert
+                (propertize
+                 (format
+                  command-log-text-format
+                  ;; 32 is space and I always wish I could write it more
+                  ;; explicitly lol
+                  (subst-char-in-string 32
+                                        (string-to-char command-log-text-space)
+                                        command-log--self-insert-string)
+                  'face 'command-log-text-face)))
                (newline))
-
               (t
                (insert
                 (propertize
