@@ -133,6 +133,10 @@ Only applies when `command-log-text' is non-nil."
   :group 'command-log
   :type 'string)
 
+(defcustom command-log-max-log-lines 256
+  "Set higher if you need to save long sessions."
+  :group 'command-log
+  :type 'string)
 
 (define-obsolete-variable-alias 'command-log-mode-auto-show
   'command-log-enable-shows "0.2.0")
@@ -744,20 +748,16 @@ hook."
                      command-log--repeat-start-marker nil
                      command-log--repeat-end-marker nil)))
 
+        ;; every non-skipped command updates the last command
         (setq command-log--last-post-command post-cmd
               command-log--last-pre-command pre-cmd
-              command-log--last-command-keys keys))
+              command-log--last-command-keys keys)
 
-      ;; TODO uhmmmm isnt' there a better way to do this?  Aight, we're using a
-      ;; variable, `comint-max-line-length', that is "only meaningful when
-      ;; communicating with sub-processes via PTY's." Let's do something better
-      ;; here."
-      (when (> (count-lines (point-min) (point-max)) comint-max-line-length)
-        (goto-char (point-min))
-        ;; TODO linter said this was Emacs 29 lol.
-        (delete-region (pos-bol) (pos-bol 2)))
-      ;; TODO this probably is not the best way to autoscroll
-      (command-log--scroll-buffer-windows))))
+        (when (> (count-lines (point-min) (point-max))
+                 command-log-max-log-lines)
+          (delete-region (goto-char (point-min))
+                         (progn  (forward-line) (point))))
+        (command-log--scroll-buffer-windows)))))
 
 (defvar-local command-log--dribble-file nil
   "Clean up this dribble file.")
