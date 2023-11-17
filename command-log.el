@@ -479,9 +479,6 @@ Prefix argument will KILL buffer."
       (with-current-buffer buffer
         (erase-buffer)))))
 
-(declare-function 'clm/command-log-clear "command-log-mode" ())
-(define-obsolete-function-alias 'clm/command-log-clear #'command-log-clear "0.2.0")
-
 ;;;###autoload
 (defun command-log-toggle-show-all (&optional arg)
   "Override `command-log-filter-commands' and show everything.
@@ -518,11 +515,6 @@ Clears the command log buffer after saving."
                             (concat command-log-save-dir now))))
         (when (y-or-n-p "Erase buffer?")
           (erase-buffer))))))
-
-(declare-function 'clm/save-command-log "command-log-mode" ())
-(define-obsolete-function-alias
-  'command-log-save-command-log #'command-log-save "0.2.0")
-(define-obsolete-function-alias 'clm/save-command-log #'command-log-save "0.2.0")
 
 (defun command-log--line-time (start _end)
   "Return time at START as [timestamp].
