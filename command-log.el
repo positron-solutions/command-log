@@ -312,6 +312,9 @@ about commands that will override the setting of `'post-command'."
 
 (defcustom command-log-post-excepting-pre-commands
   `(counsel-M-x
+    universal-argument-more
+    universal-argument
+    digit-argument
     execute-extended-command
     ,(command-remapping 'execute-extended-command)) ; whatever the user's remap is
   "A list of commands that do not update `this-command'.
